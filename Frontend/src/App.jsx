@@ -11,7 +11,7 @@ import ViewPatient from "./pages/user/ViewPatient";
 import ViewUsers from "./pages/admin/ViewUsers";
 
 const getRole = () => {
-  return "admin";
+  return "user";
 };
 
 const getPermission = () => {
