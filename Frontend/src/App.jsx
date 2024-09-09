@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-import { useState } from 'react'
-
-
-function App() {
-  return (
-    <>
-    
-=======
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
@@ -74,7 +65,6 @@ function App() {
   return (
     <>
       <RouterProvider router={router} />
->>>>>>> 0b2a9732aaede1c26e12d984d258bd72bb5d2ecb
     </>
   );
 }
