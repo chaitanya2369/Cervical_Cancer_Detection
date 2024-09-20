@@ -1,14 +1,16 @@
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
 import AdminHome from "./pages/admin/AdminHome";
 import UserHome from "./pages/user/UserHome";
 import TrainerHome from "./pages/trainer/TrainerHome";
 import Patients from "./pages/user/Patients";
 import ViewPatient from "./pages/user/ViewPatient";
 import ViewUsers from "./pages/admin/ViewUsers";
+import AuthLayout from "./components/AuthLayout";
+import SignInForm from "./components/SignInForm";
+import SignUpForm from "./components/SignUpForm";
+import OtpPage from "./pages/OtpPage";
 
 const getRole = () => {
   return "user";
@@ -39,11 +41,33 @@ function App() {
     },
     {
       path: "/login",
-      element: <Login />,
+      element: <AuthLayout />,
+      children: [
+        {
+          path: "/login",
+          element: <SignInForm />,
+        },
+      ],
     },
     {
       path: "/signup",
-      element: <Signup />,
+      element: <AuthLayout />,
+      children: [
+        {
+          path: "/signup",
+          element: <SignUpForm />,
+        },
+      ],
+    },
+    {
+      path: "/otp",
+      element: <AuthLayout />,
+      children: [
+        {
+          path: "/otp",
+          element: <OtpPage />,
+        },
+      ],
     },
     {
       path: "/home",
