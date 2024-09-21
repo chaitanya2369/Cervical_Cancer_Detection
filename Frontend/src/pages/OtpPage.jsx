@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 function OtpPage() {
   const [otp, setOtp] = useState("");
 
@@ -7,8 +7,16 @@ function OtpPage() {
     e.preventDefault();
     console.log("OTP Submitted:", otp);
   };
+
+  const navigate = useNavigate();
+  const handleHomePage = () => {
+    // Have to Add form validation and signup logic here
+    // After successful signup, navigating to OTP page
+    navigate("/home");
+  };
   
   return (
+
     <div className="flex flex-col items-center p-4">
         <img src="./images/otpverification.png" className="w-1/2" alt="Error..." />
       <p>One Time Password has been sent via Email to </p>
@@ -24,6 +32,7 @@ function OtpPage() {
         />
         <button
           type="submit"
+          onClick={handleHomePage}
           className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
         >
           Submit OTP
