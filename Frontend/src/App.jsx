@@ -78,7 +78,8 @@ function App() {
       element: <Patients />,
     },
     {
-      path: "/patient/:slug",
+      // path: "/patient/:slug",
+      path: "/viewpatient",
       element: <ViewPatient />,
     },
     {
