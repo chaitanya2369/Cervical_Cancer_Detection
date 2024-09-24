@@ -11,6 +11,7 @@ import AuthLayout from "./components/AuthLayout";
 import SignInForm from "./components/SignInForm";
 import SignUpForm from "./components/SignUpForm";
 import OtpPage from "./pages/OtpPage";
+import TrainModel from "./pages/trainer/TrainModel";
 
 const getRole = () => {
   return "user";
@@ -76,6 +77,10 @@ function App() {
     {//just for temporary purpose should be changed later
       path: "/home/trainer",
       element: <TrainerHome/>,
+    },
+    {//just for temporary purpose should be changed later
+      path: "/trainer/trainmodel",
+      element: <TrainModel/>,
     },
     {
       path: "/patients",
