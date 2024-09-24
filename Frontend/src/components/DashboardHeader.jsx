@@ -1,9 +1,9 @@
 import React from "react";
 
-function DashboardHeader(){
-    return(
-        <>
-            <nav className="bg-gray-800">
+function DashboardHeader() {
+  return (
+    <>
+      <nav className="bg-gray-800">
         <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
           <div className="relative flex h-16 items-center justify-between">
             <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -60,37 +60,26 @@ function DashboardHeader(){
               <div className="flex flex-shrink-0 items-center">
                 <img
                   className="h-8 w-auto"
-                  src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
-                  alt="Your Company"
+                  src="../../images/logo.png"
+                  alt="CerviScan"
                 />
+                <div className="text-xl text-white ml-2">CerviScan</div>
               </div>
-              <div className="hidden sm:ml-6 sm:block">
+              <div className="sm:ml-6 sm:block">
                 <div className="flex space-x-4">
                   {/* Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" */}
+                  <a
+                    href="#"
+                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                  >
+                    Home
+                  </a>
                   <a
                     href="#"
                     className="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
                     aria-current="page"
                   >
                     Dashboard
-                  </a>
-                  <a
-                    href="#"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-                  >
-                    Team
-                  </a>
-                  <a
-                    href="#"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-                  >
-                    Projects
-                  </a>
-                  <a
-                    href="#"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-                  >
-                    Calendar
                   </a>
                 </div>
               </div>
@@ -183,8 +172,7 @@ function DashboardHeader(){
         </div>
       </nav>
     </>
-    )
-
+  );
 }
 
 export default DashboardHeader;
