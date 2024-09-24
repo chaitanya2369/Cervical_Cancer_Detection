@@ -1,7 +1,15 @@
 import React from "react";
+import DashboardHeader from "../../components/DashboardHeader";
 
 const TrainerHome = () => {
-  return <div>TrainerHome</div>;
+  return(
+    <>
+      <DashboardHeader/>
+      <div>
+        
+      </div>
+    </>
+  )
 };
 
 export default TrainerHome;

@@ -73,6 +73,10 @@ function App() {
       path: "/home",
       element: renderHome(),
     },
+    {//just for temporary purpose should be changed later
+      path: "/home/trainer",
+      element: <TrainerHome/>,
+    },
     {
       path: "/patients",
       element: <Patients />,
