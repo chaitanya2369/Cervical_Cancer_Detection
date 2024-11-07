@@ -1,26 +1,40 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 function OtpPage() {
   const [otp, setOtp] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("OTP Submitted:", otp);
-  };
-
   const navigate = useNavigate();
-  const handleHomePage = () => {
-    // Have to Add form validation and signup logic here
-    // After successful signup, navigating to OTP page
-    navigate("/home");
-  };
-  
-  return (
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const email="chittibillichaitanya@gmail.com";
+    try {
+      const response = await fetch("http://localhost:8080/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ otp, email}),
+      });
+
+      if (response.ok) {
+        // If OTP verification is successful
+        navigate("/home");
+      } else {
+        // Handle invalid OTP case
+        console.log(otp)
+        console.error("Invalid OTP");
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+    }
+  };
+
+  return (
     <div className="flex flex-col items-center p-4">
-        <img src="./images/otpverification.png" className="w-1/2" alt="Error..." />
+      <img src="./images/otpverification.png" className="w-1/2" alt="Error..." />
       <p>One Time Password has been sent via Email to </p>
-      <p className="font-bold">user@gmail.com </p>
+      <p className="font-bold">user@gmail.com</p>
       <h1 className="font-medium mb-4">Enter OTP to Verify</h1>
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
         <input
@@ -32,7 +46,6 @@ function OtpPage() {
         />
         <button
           type="submit"
-          onClick={handleHomePage}
           className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
         >
           Submit OTP

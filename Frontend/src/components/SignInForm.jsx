@@ -1,13 +1,39 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
 function SignInForm() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleSignIn = () => {
-    // Have to Add form validation and signup logic here
-    // After successful signup, navigating to OTP page
-    navigate("/otp");
+  const handleSignIn = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Assuming your backend sends back a flag indicating if OTP is needed
+        if (data.otpRequired) {
+          navigate("/otp");
+        } else {
+          // Handle successful sign in (e.g., redirect to home)
+          navigate("/home");
+        }
+      } else {
+        // Handle error (e.g., show a message)
+        console.error("Sign in failed");
+      }
+    } catch (error) {
+      console.error("Error signing in:", error);
+    }
   };
+
   return (
     <div>
       <h1 className="font-bold text-2xl mb-4 text-center">Log In</h1>
@@ -17,6 +43,8 @@ function SignInForm() {
             type="email"
             placeholder="Email"
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
         <div className="mb-4">
@@ -24,6 +52,8 @@ function SignInForm() {
             type="password"
             placeholder="Password"
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
         <div className="flex items-center justify-between">
