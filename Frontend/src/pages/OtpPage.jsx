@@ -1,20 +1,24 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function OtpPage() {
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
+  const loc = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const email="chittibillichaitanya@gmail.com";
+
+    const email = loc.state?.email;
+
+    console.log(email);
     try {
       const response = await fetch("http://localhost:8080/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ otp, email}),
+        body: JSON.stringify({ otp, email }),
       });
 
       if (response.ok) {
@@ -22,7 +26,7 @@ function OtpPage() {
         navigate("/home");
       } else {
         // Handle invalid OTP case
-        console.log(otp)
+        console.log(otp);
         console.error("Invalid OTP");
       }
     } catch (error) {
@@ -32,7 +36,11 @@ function OtpPage() {
 
   return (
     <div className="flex flex-col items-center p-4">
-      <img src="./images/otpverification.png" className="w-1/2" alt="Error..." />
+      <img
+        src="./images/otpverification.png"
+        className="w-1/2"
+        alt="Error..."
+      />
       <p>One Time Password has been sent via Email to </p>
       <p className="font-bold">user@gmail.com</p>
       <h1 className="font-medium mb-4">Enter OTP to Verify</h1>
