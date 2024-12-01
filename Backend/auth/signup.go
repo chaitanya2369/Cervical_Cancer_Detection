@@ -127,6 +127,10 @@ func VerifyOtp(c *gin.Context){
 	userEntry.Email = newUser.Email
 	userEntry.Name = newUser.Name
 	userEntry.Password = newUser.Password
+	userEntry.IsApproved = false
+	userEntry.CanPredict = false
+	userEntry.CanTrain = false
+	userEntry.Role = "user"
 	_,err =userCollection.InsertOne(context.TODO(), userEntry)
     
 	if err!=nil{

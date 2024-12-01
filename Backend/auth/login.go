@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func handleLogin(c *gin.Context){ 
+func HandleLogin(c *gin.Context){ 
    var user models.USER
    if err:= c.ShouldBindJSON(&user); err!=nil{
 	 c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -30,9 +30,9 @@ func handleLogin(c *gin.Context){
    }
    token, err := CreateJWTtoken(user.Email)
    if err!=nil{
-	 c.JSON(http.StatusInternalServerError, gin.H{"message": "JWT not created"})
+	 c.JSON(http.StatusInternalServerError, gin.H{"message": "JWT not created", "error": err.Error()})
 	 return
    }
 
-   c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token})
+   c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token, "role": user})
 }

@@ -10,16 +10,17 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var secretKey string
+var secretKey []byte
 
 func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 	}
-	secretKey = os.Getenv("JWT_SECRET_KEY")
+	secretKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 }
 
 func CreateJWTtoken(email string) (string, error) {
+   log.Print(email)
    token := jwt.NewWithClaims(jwt.SigningMethodHS256, 
         jwt.MapClaims{ 
         "email": email, 
@@ -30,8 +31,9 @@ func CreateJWTtoken(email string) (string, error) {
 	if err!=nil{
 		return "",err
 	}
+	log.Print(tokenString)
     
-	return tokenString, err
+	return tokenString, nil
 }
 
 func VerifyJWTtoken(email string, tokenString string) (error){

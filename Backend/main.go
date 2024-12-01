@@ -1,8 +1,8 @@
 package main
 
 import (
-	"Cervical_Cancer_Detection/auth"
 	"Cervical_Cancer_Detection/db"
+	"Cervical_Cancer_Detection/routes"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -15,8 +15,8 @@ func main() {
 	
 	db.ConnectDb() //connect db
 
-	r.POST("/signup", auth.SignUp)
-	r.POST("/verify-otp", auth.VerifyOtp)
+    routes.RegisterAuthRoutes(r) //auth routes
+	routes.RegisterAdminRoutes(r) //admin routes
 
 	r.Run(":8080")	
 }
