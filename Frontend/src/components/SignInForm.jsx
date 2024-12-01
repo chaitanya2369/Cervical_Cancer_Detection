@@ -1,36 +1,32 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // Ensure correct path
 
 function SignInForm() {
   const navigate = useNavigate();
+  const { login } = useAuth(); // Get login function from context
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSignIn = async () => {
-    try {
-      const response = await fetch("http://localhost:8080/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    // Simulate response with hardcoded values for testing
+    const data = { token: "12345", role: "trainer" };
 
-      if (response.ok) {
-        const data = await response.json();
-        // Assuming your backend sends back a flag indicating if OTP is needed
-        if (data.otpRequired) {
-          navigate("/otp");
-        } else {
-          // Handle successful sign in (e.g., redirect to home)
-          navigate("/home");
-        }
+    if (data) {
+      const { token, role } = data;
+      login(token); // Use the 'login' function from context
+
+      // Navigate based on role
+      if (role === "admin") {
+        navigate("/admin");
+      } else if (role === "trainer") {
+        navigate("/trainer/dashboard");
       } else {
-        // Handle error (e.g., show a message)
-        console.error("Sign in failed");
+        navigate("/user/dashboard");
       }
-    } catch (error) {
-      console.error("Error signing in:", error);
+    } else {
+      console.error("Sign in failed");
     }
   };
 

@@ -12,29 +12,24 @@ import SignInForm from "./components/SignInForm";
 import SignUpForm from "./components/SignUpForm";
 import OtpPage from "./pages/OtpPage";
 import TrainModel from "./pages/trainer/TrainModel";
+import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
 
 const getRole = () => {
-  return "user";
+  return "user"; // Temporary for routing, replace with actual logic
 };
 
-const getPermission = () => {
-  //1->has permission to view patient, 2-> send pics for training
-  return 1;
-};
-
-const renderHome = () => {
-  const role = getRole();
-  if (role == "admin") {
-    return <AdminHome />;
-  } else if (role == "user") {
-    return <UserHome />;
-  } else if (role == "trainer") {
-    return <TrainerHome />;
-  } else return <Login />;
-};
+// const renderHome = () => {
+//   const role = getRole();
+//   if (role === "admin") {
+//     return <AdminHome />;
+//   } else if (role === "user") {
+//     return <UserHome />;
+//   } else if (role === "trainer") {
+//     return <TrainerHome />;
+//   } else return <SignInForm />;
+// };
 
 function App() {
-  const permission = getPermission();
   const router = createBrowserRouter([
     {
       path: "/",
@@ -71,23 +66,30 @@ function App() {
       ],
     },
     {
-      path: "/home",
-      element: renderHome(),
+      path: "/admin/dashboard",
+      element: <AdminHome />,
     },
-    {//just for temporary purpose should be changed later
-      path: "/home/trainer",
-      element: <TrainerHome/>,
+    {
+      path: "/user/dashboard",
+      element: <AdminHome />,
     },
-    {//just for temporary purpose should be changed later
+    {
+      path: "/admin/dashboard",
+      element: <AdminHome />,
+    },
+    {
+      path: "/trainer/dashboard",
+      element: <TrainerHome />,
+    },
+    {
       path: "/trainer/trainmodel",
-      element: <TrainModel/>,
+      element: <TrainModel />,
     },
     {
       path: "/patients",
       element: <Patients />,
     },
     {
-      // path: "/patient/:slug",
       path: "/viewpatient",
       element: <ViewPatient />,
     },
@@ -96,10 +98,11 @@ function App() {
       element: <ViewUsers />,
     },
   ]);
+
   return (
-    <>
+    <AuthProvider> {/* Wrap the router with AuthProvider */}
       <RouterProvider router={router} />
-    </>
+    </AuthProvider>
   );
 }
 
