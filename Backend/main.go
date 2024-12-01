@@ -16,6 +16,7 @@ func main() {
 	db.ConnectDb() //connect db
 
 	r.POST("/signup", auth.SignUp)
+	r.POST("/verify-otp", auth.VerifyOtp)
 
 	r.Run(":8080")	
 }
