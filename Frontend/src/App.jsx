@@ -18,16 +18,16 @@ const getRole = () => {
   return "user"; // Temporary for routing, replace with actual logic
 };
 
-const renderHome = () => {
-  const role = getRole();
-  if (role === "admin") {
-    return <AdminHome />;
-  } else if (role === "user") {
-    return <UserHome />;
-  } else if (role === "trainer") {
-    return <TrainerHome />;
-  } else return <SignInForm />;
-};
+// const renderHome = () => {
+//   const role = getRole();
+//   if (role === "admin") {
+//     return <AdminHome />;
+//   } else if (role === "user") {
+//     return <UserHome />;
+//   } else if (role === "trainer") {
+//     return <TrainerHome />;
+//   } else return <SignInForm />;
+// };
 
 function App() {
   const router = createBrowserRouter([
@@ -66,8 +66,16 @@ function App() {
       ],
     },
     {
-      path: "/home",
-      element: renderHome(),
+      path: "/admin/dashboard",
+      element: <AdminHome />,
+    },
+    {
+      path: "/user/dashboard",
+      element: <AdminHome />,
+    },
+    {
+      path: "/admin/dashboard",
+      element: <AdminHome />,
     },
     {
       path: "/trainer/dashboard",

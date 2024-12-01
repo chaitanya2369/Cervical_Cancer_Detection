@@ -8,36 +8,42 @@ function SignUpForm() {
   const [contactNumber, setContactNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("doctor"); // Default role
+  const [role, setRole] = useState("trainer"); // Default role
 
   const handleSignUp = async () => {
+    if (!name || !email || !contactNumber || !password || !confirmPassword) {
+      alert("Please fill all the fields");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
     if (password !== confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
     try {
-      console.log(name);
       const response = await fetch("http://localhost:8080/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, contactNumber, password, role }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), contactNumber, password, role }),
       });
 
-      console.log(response);
-
       if (response.ok) {
-        // After successful signup, navigate to OTP page
-        console.log("Yeah got response");
-        navigate("/otp", { state: { email: email } });
+        navigate("/otp", { state: { name, email, password } });
       } else {
-        // Handle error (e.g., show a message)
-        console.error("Sign up failed");
+        const errorData = await response.json();
+        alert(`Sign up failed: ${errorData.message}`);
       }
     } catch (error) {
       console.error("Error signing up:", error);
+      alert("An unexpected error occurred. Please try again later.");
     }
   };
 
@@ -52,6 +58,7 @@ function SignUpForm() {
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
           />
         </div>
         <div className="mb-4">
@@ -61,6 +68,7 @@ function SignUpForm() {
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </div>
         <div className="mb-4">
@@ -70,6 +78,7 @@ function SignUpForm() {
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             value={contactNumber}
             onChange={(e) => setContactNumber(e.target.value)}
+            required
           />
         </div>
         <div className="mb-4">
@@ -79,6 +88,7 @@ function SignUpForm() {
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
         </div>
         <div className="mb-4">
@@ -88,6 +98,7 @@ function SignUpForm() {
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            required
           />
         </div>
         <div className="mb-4">
@@ -103,9 +114,9 @@ function SignUpForm() {
             onChange={(e) => setRole(e.target.value)}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           >
-            <option value="student">Admin</option>
-            <option value="teacher">User</option>
-            <option value="admin">Trainer</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+            <option value="trainer">Trainer</option>
           </select>
         </div>
         <div className="flex items-center justify-between">
