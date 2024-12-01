@@ -11,6 +11,10 @@ type USER struct {
 	Name       string             `bson:"name"`
     Email      string             `bson:"email"`
 	Password   string             `bson:"password"`
+	IsApproved   bool             `bson:"isApproved"`
+	CanPredict   bool             `bson:"canPredict"`
+	CanTrain     bool             `bson:"canTrain"`
+	Role       string             `bson:"role"`
 }
 
 type OTPuser struct{
