@@ -5,16 +5,19 @@ import (
 	"Cervical_Cancer_Detection/models"
 	"context"
 	"net/http"
-
+   "log"
 	"github.com/gin-gonic/gin"
 )
 
 func HandleLogin(c *gin.Context){ 
+   log.Print("Handle login initiated")
    var user models.USER
    if err:= c.ShouldBindJSON(&user); err!=nil{
 	 c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	 return
    }
+
+   log.Printf("User: %+v", user.Role)
    userCollection := db.Client.Database("db1").Collection("users")
    var tempUser models.USER
    err:= userCollection.FindOne(context.TODO(), gin.H{"email": user.Email}).Decode(&tempUser) //check if already registered
@@ -34,5 +37,5 @@ func HandleLogin(c *gin.Context){
 	 return
    }
 
-   c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token, "role": user})
+   c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token, "role": tempUser.Role})
 }

@@ -18,5 +18,5 @@ func main() {
     routes.RegisterAuthRoutes(r) //auth routes
 	routes.RegisterAdminRoutes(r) //admin routes
 
-	r.Run(":8000")	
+	r.Run(":8080")	
 }

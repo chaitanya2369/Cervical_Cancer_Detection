@@ -1,7 +1,7 @@
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
-import AdminHome from "./pages/admin/AdminHome";
+// import AdminHome from "./pages/admin/AdminHome";
 import UserHome from "./pages/user/UserHome";
 import TrainerHome from "./pages/trainer/TrainerHome";
 import Patients from "./pages/user/Patients";
@@ -13,6 +13,7 @@ import SignUpForm from "./components/SignUpForm";
 import OtpPage from "./pages/OtpPage";
 import TrainModel from "./pages/trainer/TrainModel";
 import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 const getRole = () => {
   return "user"; // Temporary for routing, replace with actual logic
@@ -67,15 +68,7 @@ function App() {
     },
     {
       path: "/admin/dashboard",
-      element: <AdminHome />,
-    },
-    {
-      path: "/user/dashboard",
-      element: <AdminHome />,
-    },
-    {
-      path: "/admin/dashboard",
-      element: <AdminHome />,
+      element: <AdminDashboard />,
     },
     {
       path: "/trainer/dashboard",

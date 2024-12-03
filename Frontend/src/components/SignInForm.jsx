@@ -1,32 +1,60 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // Ensure correct path
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 function SignInForm() {
   const navigate = useNavigate();
-  const { login } = useAuth(); // Get login function from context
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async () => {
-    // Simulate response with hardcoded values for testing
-    const data = { token: "12345", role: "trainer" };
+    if (!email || !password) {
+      setError("Email and Password are required.");
+      return;
+    }
 
-    if (data) {
-      const { token, role } = data;
-      login(token); // Use the 'login' function from context
+    setIsLoading(true);
+    setError("");
 
-      // Navigate based on role
-      if (role === "admin") {
-        navigate("/admin");
-      } else if (role === "trainer") {
-        navigate("/trainer/dashboard");
+    try {
+      const response = await axios.post("http://localhost:8080/auth/login", {
+        email,
+        password,
+      });
+
+      const { "jwt-token": token, role } = response.data;
+
+      if (token) {
+        Cookies.set("jwt-token", token, { expires: 7 }); // Save token to cookies
+        login(token);
+
+        switch (role) {
+          case "admin":
+            navigate("/admin/dashboard");
+            break;
+          case "trainer":
+            navigate("/trainer/dashboard");
+            break;
+          default:
+            navigate("/user/dashboard");
+        }
       } else {
-        navigate("/user/dashboard");
+        setError("Login failed, token not received.");
       }
-    } else {
-      console.error("Sign in failed");
+    } catch (err) {
+      console.error("Sign in failed:", err);
+      setError(
+        err.response && err.response.data && err.response.data.error
+          ? err.response.data.error
+          : "Login failed, please check your credentials."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,19 +80,23 @@ function SignInForm() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
+        {error && <div className="text-red-500">{error}</div>}
         <div className="flex items-center justify-between">
           <button
-            className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={isLoading}
+            className={`bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
             type="button"
             onClick={handleSignIn}
           >
-            Log In
+            {isLoading ? "Logging In..." : "Log In"}
           </button>
         </div>
       </form>
       <div className="mt-4 text-center">
         <Link to="/signup" className="text-teal-500 hover:text-teal-700">
-          Already have an account? Sign Up
+          Don't have an account? Sign Up
         </Link>
       </div>
     </div>
