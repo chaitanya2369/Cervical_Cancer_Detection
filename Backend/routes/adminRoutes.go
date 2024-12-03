@@ -12,6 +12,8 @@ func RegisterAdminRoutes(router *gin.Engine) {
 	 adminGroup.GET("/get-un-users", handlers.GetUnApprovedUsers)
 	 adminGroup.GET("/get-ap-users", handlers.GetApprovedUsers)
 	 adminGroup.POST("/approve-user", handlers.ApproveUser)
+	 adminGroup.POST("/change-user",  handlers.ChangeUserPermission)
+	 adminGroup.POST("/get-users", handlers.GetApprovedUsers)
 	 adminGroup.POST("/add-user",handlers.CreateUser)
    }
 }
