@@ -35,9 +35,9 @@ func GetUnApprovedUsers(c *gin.Context) {
 
    c.JSON(http.StatusAccepted, gin.H{"message": "successful", "users": UnApprovedUsers})
 }
-func GetApprovedUsers(c *gin.Context) {
-	log.Print("GetUnapprovedusers called!!");
-   var UnApprovedUsers []models.USER
+
+func GetApprovedUsers(c *gin.Context){
+   var approvedUsers []models.USER
    userCollection:=db.Client.Database("db1").Collection("users")
    cur,err:= userCollection.Find(context.TODO(), gin.H{"isApproved": true})
 
@@ -51,10 +51,10 @@ func GetApprovedUsers(c *gin.Context) {
 	if err!=nil{
 		log.Fatal(err)
 	}
-	UnApprovedUsers = append(UnApprovedUsers, elem)
+	approvedUsers = append(approvedUsers, elem)
    }
 
-   c.JSON(http.StatusAccepted, gin.H{"message": "successful", "users": UnApprovedUsers})
+   c.JSON(http.StatusAccepted, gin.H{"message": "successful", "users": approvedUsers})
 }
 
 func ApproveUser(c *gin.Context){ //send complete user
@@ -74,6 +74,25 @@ func ApproveUser(c *gin.Context){ //send complete user
   }
 
   c.JSON(http.StatusAccepted, gin.H{"message": "Approved user and gave permissions"})
+}
+
+func ChangeUserPermission(c *gin.Context){ //send complete user
+  var user models.USER
+   if err:=c.ShouldBindJSON(&user); err!=nil{
+	 log.Fatal(err)
+	 return
+   }
+   
+   userCollection := db.Client.Database("db1").Collection("users")
+   filter := bson.M{"_id": user.ID}
+   _,err := userCollection.ReplaceOne(context.TODO(), filter, user)
+
+  if err!=nil{
+	log.Fatal(err)
+	return
+  }
+
+  c.JSON(http.StatusAccepted, gin.H{"message": "Permissions changed"})
 }
 
 func CreateUser(c *gin.Context) {
