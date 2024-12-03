@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import DashboardHeader from "../../components/DashboardHeader";
 
 const TrainModel = () => {
   const [uploadedImages, setUploadedImages] = useState([]);
@@ -54,7 +53,6 @@ const TrainModel = () => {
 
   return (
     <>
-      <DashboardHeader />
       <div className="p-8">
         <h2 className="text-2xl font-semibold mb-6">Train Model</h2>
         <div className="mb-6">

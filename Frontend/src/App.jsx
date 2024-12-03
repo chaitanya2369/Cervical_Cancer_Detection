@@ -71,6 +71,10 @@ function App() {
       element: <AdminDashboard />,
     },
     {
+      path: "/user/dashboard",
+      element: <UserHome />,
+    },
+    {
       path: "/trainer/dashboard",
       element: <TrainerHome />,
     },
@@ -83,7 +87,7 @@ function App() {
       element: <Patients />,
     },
     {
-      path: "/viewpatient",
+      path: "/user/viewpatient",
       element: <ViewPatient />,
     },
     {
