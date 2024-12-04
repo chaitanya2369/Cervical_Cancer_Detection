@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import DashboardHeader from "../../components/DashboardHeader";  
-import Overview from "../../components/Overview";  
-import UserManagement from "../../components/UserManagement"; 
+import DashboardHeader from "../../components/DashboardHeader";
+import Overview from "../../components/Overview";
+import UserManagement from "../../components/UserManagement";
 import EditPermissionsModal from "../../components/EditPermissionsModal";
-import AddUserForm from "../../components/addUserForm";  
+import AddUserForm from "../../components/AddUserForm";
 
 const AdminDashboard = () => {
   const [view, setView] = useState("overview");
@@ -14,36 +14,35 @@ const AdminDashboard = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const unapprovedResponse = await axios.get(
-          "http://localhost:8080/admin/get-un-users"
-        );
-        setUnapprovedUsers(unapprovedResponse.data?.users || []);
-        const approvedResponse = await axios.get(
-          "http://localhost:8080/admin/get-ap-users"
-        );
-        setApprovedUsers(approvedResponse.data?.users || []);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setUnapprovedUsers([]);
-        setApprovedUsers([]);
-      }
-    };
+  // Fetch users for unapproved and approved
+  const fetchUsers = async () => {
+    try {
+      const unapprovedResponse = await axios.get(
+        "http://localhost:8080/admin/get-un-users"
+      );
+      setUnapprovedUsers(unapprovedResponse.data?.users || []);
 
+      const approvedResponse = await axios.get(
+        "http://localhost:8080/admin/get-ap-users"
+      );
+      setApprovedUsers(approvedResponse.data?.users || []);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setUnapprovedUsers([]);
+      setApprovedUsers([]);
+    }
+  };
+
+  useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Define filteredUsers based on the selected tab
-  const filteredUsers = () => {
-    if (tab === "approved") {
-      return approvedUsers;
-    } else if (tab === "unapproved") {
-      return unapprovedUsers;
-    }
-    return [...approvedUsers, ...unapprovedUsers];
-  };
+  // Define filteredUsers directly based on tab
+  const filteredUsers = tab === "approved" 
+    ? approvedUsers 
+    : tab === "unapproved" 
+    ? unapprovedUsers 
+    : [...approvedUsers, ...unapprovedUsers];
 
   const handleEditPermissions = (user) => {
     setSelectedUser(user);
@@ -51,21 +50,10 @@ const AdminDashboard = () => {
 
   const handleUpdatePermissions = async (updatedUser) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8080/admin/approve-user",
-        updatedUser
-      );
+      await axios.post("http://localhost:8080/admin/approve-user", updatedUser);
       alert("User permissions updated successfully!");
-      // Refresh the users list after updating
-      const unapprovedResponse = await axios.get(
-        "http://localhost:8080/admin/get-un-users"
-      );
-      const approvedResponse = await axios.get(
-        "http://localhost:8080/admin/get-ap-users"
-      );
-      setUnapprovedUsers(unapprovedResponse.data?.users || []);
-      setApprovedUsers(approvedResponse.data?.users || []);
-      setSelectedUser(null);
+      fetchUsers();  // Refresh user list after update
+      setSelectedUser(null); // Close modal
     } catch (error) {
       console.error("Error updating permissions:", error);
       alert("Failed to update user permissions. Please try again.");
@@ -73,34 +61,24 @@ const AdminDashboard = () => {
   };
 
   const handleAddUser = () => {
-    setIsAddUserModalOpen(true); // Open the Add User modal
+    setIsAddUserModalOpen(true); // Open Add User Modal
   };
 
   const handleCloseAddUserModal = () => {
-    setIsAddUserModalOpen(false); // Close the Add User modal
+    setIsAddUserModalOpen(false); // Close Add User Modal
   };
-  const handleAddUserData = async (userDetails)=>{
+
+  const handleAddUserData = async (userDetails) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8080/admin/add-user",
-        userDetails
-      );
+      await axios.post("http://localhost:8080/admin/add-user", userDetails);
       alert("User added successfully!");
-      // Refresh the users list after adding
-      const updatedUnapprovedUsers = await axios.get(
-        "http://localhost:8080/admin/get-un-users"
-      );
-      setUnapprovedUsers(updatedUnapprovedUsers.data?.users || []);
-      const updatedApprovedUsers = await axios.get(
-        "http://localhost:8080/admin/get-ap-users"
-      );
-      setUnapprovedUsers(updatedApprovedUsers.data?.users || []);
+      fetchUsers(); // Refresh user list after adding
     } catch (error) {
       console.error("Error adding user:", error);
       alert("Failed to add user. Please try again.");
     }
+  };
 
-  }
   return (
     <>
       <DashboardHeader />
@@ -112,9 +90,7 @@ const AdminDashboard = () => {
                 <li>
                   <button
                     className={`w-full text-left p-2 rounded ${
-                      view === "overview"
-                        ? "bg-blue-500 text-white"
-                        : "text-gray-600"
+                      view === "overview" ? "bg-blue-500 text-white" : "text-gray-600"
                     }`}
                     onClick={() => setView("overview")}
                   >
@@ -124,9 +100,7 @@ const AdminDashboard = () => {
                 <li>
                   <button
                     className={`w-full text-left p-2 rounded ${
-                      view === "users"
-                        ? "bg-blue-500 text-white"
-                        : "text-gray-600"
+                      view === "users" ? "bg-blue-500 text-white" : "text-gray-600"
                     }`}
                     onClick={() => setView("users")}
                   >
@@ -143,7 +117,7 @@ const AdminDashboard = () => {
               <UserManagement
                 tab={tab}
                 setTab={setTab}
-                filteredUsers={filteredUsers()} // Pass the result directly
+                filteredUsers={filteredUsers} // Pass directly
                 handleEditPermissions={handleEditPermissions}
                 handleAddUser={handleAddUser}
               />
