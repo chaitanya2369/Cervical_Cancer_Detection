@@ -14,5 +14,7 @@ func RegisterUserRoutes(router *gin.Engine) {
 	 adminGroup.POST("/add-patient", handlers.AddNewPatient) 
 	 adminGroup.GET("/get-patient", handlers.GetPatient) 
 	 adminGroup.POST("/edit-patient", handlers.EditPatient) 
+
+	 adminGroup.POST("/predict", handlers.UploadImageForPatientAndPredict)
    }
 }
