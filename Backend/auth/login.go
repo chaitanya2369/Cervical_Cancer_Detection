@@ -4,10 +4,17 @@ import (
 	"Cervical_Cancer_Detection/db"
 	"Cervical_Cancer_Detection/models"
 	"context"
+	"log"
 	"net/http"
-   "log"
+
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
+
+func checkPassword(hashedPassword string, password string) bool{
+   err:= bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+   return err==nil
+}
 
 func HandleLogin(c *gin.Context){ 
    log.Print("Handle login initiated")
@@ -17,7 +24,6 @@ func HandleLogin(c *gin.Context){
 	 return
    }
 
-   log.Printf("User: %+v", user.Role)
    userCollection := db.Client.Database("db1").Collection("users")
    var tempUser models.USER
    err:= userCollection.FindOne(context.TODO(), gin.H{"email": user.Email}).Decode(&tempUser) //check if already registered
@@ -27,7 +33,7 @@ func HandleLogin(c *gin.Context){
 	  return
    }
 
-   if tempUser.Password!=user.Password{
+   if !checkPassword(tempUser.Password, user.Password){
 	 c.JSON(http.StatusNotAcceptable, gin.H{"message": "password not matched"})
 	 return
    }
