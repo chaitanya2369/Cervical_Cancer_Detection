@@ -3,16 +3,22 @@ package handlers
 import (
 	"Cervical_Cancer_Detection/db"
 	"Cervical_Cancer_Detection/models"
+	s3service "Cervical_Cancer_Detection/s3Service"
+	"bytes"
 	"context"
+	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -106,6 +112,7 @@ func AddNewPatient(c *gin.Context) {
 
    newPatient.ID = getID(patientsCollection);
    newPatient.IsActive = true
+   newPatient.Images = []models.ImageData{}
    
 
    _,err:=patientsCollection.InsertOne(context.TODO(), newPatient)
@@ -138,47 +145,68 @@ func EditPatient(c *gin.Context){
    c.JSON(http.StatusOK, gin.H{"message": "Patient Updated Successfully"})
 }
 
-func uploadImageInS3(file multipart.File) (string,error){
-   return "",nil;
-}
-
-
-type reqImageData struct{
-	ID            primitive.ObjectID  `bson:"_id,omitempty"`
-	URL           string              `bson:"url"`          //Base64-encoded string later will replace with s3 url
-	Type          string              `bson:"type"`
-}
-
-func UploadImageForPatient(c *gin.Context){ //patientID, image
-   image,_, err:=c.Request.FormFile("image")
-
-   if err!=nil{
-	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	return
+func uploadImageInS3(file multipart.File, key string) {
+   if err := godotenv.Load(); err != nil {
+      log.Fatal("Error loading .env file")
    }
-   imageURL,err :=uploadImageInS3(image) //send image to this later
+
+   fileBytes, err := io.ReadAll(file)
+   if err != nil {
+      log.Fatal("Failed to read file:", err)
+   }
+
+   svc := s3service.S3Client
+
+   uploadParams := &s3.PutObjectInput{
+      Bucket:        aws.String(os.Getenv("BUCKET")),
+      Key:           aws.String(key),
+      Body:          bytes.NewReader(fileBytes), 
+      ContentLength: aws.Int64(int64(len(fileBytes))), 
+      ContentType:   aws.String("image/jpeg"),   
+   }
+
+   _, err = svc.PutObject(uploadParams)
+   if err != nil {
+      log.Fatal("Failed to upload image:", err)
+   }
+}
+
+func UploadImageForPatientAndPredict(c *gin.Context){ //patientID, image
+   image, _, err:=c.Request.FormFile("image")
+   if err!=nil{
+	   c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	   return
+   }
+
+   patientId:= c.Request.FormValue("ID")
+   imageType:=c.Request.FormValue("type")
+
+   currentTime := time.Now()
+	formattedTime := currentTime.Format("2006-01-02 15:04:05") // YYYY-MM-DD HH:MM:SS
+   
+   key:=patientId+formattedTime+".jpg"
+
+   uploadImageInS3(image,key) //send image to this later
+
+   imageURL:= "https://ccdt.s3.ap-south-1.amazonaws.com/"+key
 
    if err!=nil{
 	 c.JSON(http.StatusAccepted, gin.H{"error": "Error in uploading image in S3 bucket"})
 	 return
    }
    
-   var img reqImageData
-   if err:=c.ShouldBindJSON(&img); err!=nil{
-	  c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
-	  return
-   }
+   
 
    newImage := models.ImageData{
 	 URL: imageURL,
 	 InsertedAt: time.Now(),
-	 Type: img.Type,
+	 Type: imageType,
    }
 
    patientsCollection:=db.Client.Database("db1").Collection("patients")
    
    
-   filter:=gin.H{"_id": img.ID}
+   filter:=gin.H{"_id": patientId}
    update:=gin.H{"$push": gin.H{"images": newImage}};
 
    _,err= patientsCollection.UpdateOne(context.TODO(), filter, update)

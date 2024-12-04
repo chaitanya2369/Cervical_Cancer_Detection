@@ -14,6 +14,7 @@ require (
 require (
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/air-verse/air v1.61.1 // indirect
+	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/bep/godartsass v1.2.0 // indirect
 	github.com/bep/godartsass/v2 v2.1.0 // indirect
 	github.com/bep/golibsass v1.2.0 // indirect
@@ -34,6 +35,7 @@ require (
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/gohugoio/hugo v0.134.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect

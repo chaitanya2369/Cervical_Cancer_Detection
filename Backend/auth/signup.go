@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 )
 
@@ -81,6 +82,16 @@ func SignUp(c *gin.Context){
 	c.JSON(http.StatusAccepted, gin.H{"message":"Yay! OTP generated check it"})
 }
 
+func hashPassword(password string)(string, error){
+	hashedPassword, err:=bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	if err!=nil{
+		return "",err
+	}
+    
+	return string(hashedPassword),nil
+}
+
 type USER_DETAILS struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty"`
 	Name       string             `bson:"name"`
@@ -122,11 +133,18 @@ func VerifyOtp(c *gin.Context){
 	}
 
 	userCollection := db.Client.Database("db1").Collection("users");
+    
+    hashedPassword,err:= hashPassword(newUser.Password)
+
+	if err!=nil{
+		log.Fatal("err:", err)
+		return
+	}
 
 	var userEntry models.USER
 	userEntry.Email = newUser.Email
 	userEntry.Name = newUser.Name
-	userEntry.Password = newUser.Password
+	userEntry.Password = hashedPassword
 	userEntry.IsApproved = false
 	userEntry.CanPredict = false
 	userEntry.CanTrain = false
