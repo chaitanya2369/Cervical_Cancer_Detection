@@ -4,7 +4,7 @@ import DashboardHeader from "../../components/DashboardHeader";
 import Overview from "../../components/Overview";
 import UserManagement from "../../components/UserManagement";
 import EditPermissionsModal from "../../components/EditPermissionsModal";
-import AddUserForm from "../../components/AddUserForm";
+import AddUserForm from "../../components/addUserForm";
 
 const AdminDashboard = () => {
   const [view, setView] = useState("overview");
