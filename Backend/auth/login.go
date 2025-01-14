@@ -43,5 +43,5 @@ func HandleLogin(c *gin.Context){
 	 return
    }
 
-   c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token, "role": tempUser.Role})
+   c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token, "user": tempUser})
 }

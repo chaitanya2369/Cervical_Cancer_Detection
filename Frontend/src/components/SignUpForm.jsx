@@ -101,7 +101,7 @@ function SignUpForm() {
             required
           />
         </div>
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
             htmlFor="role"
@@ -118,7 +118,7 @@ function SignUpForm() {
             <option value="user">User</option>
             <option value="trainer">Trainer</option>
           </select>
-        </div>
+        </div> */}
         <div className="flex items-center justify-between">
           <button
             className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"

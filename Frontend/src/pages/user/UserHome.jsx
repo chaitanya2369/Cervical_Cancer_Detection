@@ -4,7 +4,8 @@ import DashboardHeader from "../../components/DashboardHeader";
 import Overview from "../../components/Overview";
 import PatientManagement from "../../components/PatientManagement";
 import AddPatientForm from "../../components/addPatientForm";
-import TrainModel from "../trainer/TrainModel"; // Import TrainModel component
+import TrainModel from "../trainer/TrainModel"; 
+import { useLocation } from "react-router-dom";
 
 const UserHome = () => {
   const [view, setView] = useState("overview");
@@ -15,19 +16,20 @@ const UserHome = () => {
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
   const [isEditPatientModalOpen, setIsEditPatientModalOpen] = useState(false);
 
+  const location = useLocation();
+  const { state } = location;
+  console.log(state)
   // Fetch patients data
   const fetchPatients = async () => {
     try {
       const inActivePatientsResponse = await axios.get(
         "http://localhost:8080/user/get-Inactive"
       );
-      console.log("Inactive Patients Response: ", inActivePatientsResponse.data);
       setInActivePatients(inActivePatientsResponse.data?.active_patients || []);
   
       const activePatientsResponse = await axios.get(
         "http://localhost:8080/user/get-active"
       );
-      console.log("Active Patients Response: ", activePatientsResponse.data);
       setActivePatients(activePatientsResponse.data.active_patients || []);
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -50,8 +52,7 @@ const UserHome = () => {
       : [...activePatients, ...inActivePatients];
 
   // Handle opening and closing of Add Patient modal
-  const handleAddPatient = () => {
-    // setSelectedPatient(patient); // Sets the selected patient
+  const handleAddPatient = () => { 
     setIsAddPatientModalOpen(true); // Opens the modal
   };
 
@@ -123,6 +124,7 @@ const UserHome = () => {
                       view === "Train Model" ? "bg-blue-500 text-white" : "text-gray-600"
                     }`}
                     onClick={() => setView("Train Model")}
+                    disabled={!state.CanTrain}
                   >
                     Train Model
                   </button>

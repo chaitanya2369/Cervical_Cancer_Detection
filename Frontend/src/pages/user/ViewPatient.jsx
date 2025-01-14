@@ -19,7 +19,9 @@ const ViewPatient = () => {
   const [followUpTests, setFollowUpTests] = useState([]);
   const [newTest, setNewTest] = useState("");
   const [activeTab, setActiveTab] = useState("Notes");
-  const [prediction,setPrediction] = useState("")
+  const [prediction,setPrediction] = useState("NA");
+
+  const [responseData,setResponseData] = useState([]);
 
   const [showHistory, setShowHistory] = useState(false);
 
@@ -28,6 +30,7 @@ const ViewPatient = () => {
   const [selectedPatientDetails, setSelectedPatientDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   
   const handleViewPatient = async (patientID) => {
     console.log("Patient ID: ",patientID);
@@ -35,18 +38,19 @@ const ViewPatient = () => {
       const response = await axios.post("http://localhost:8080/user/get-patient", {
         "ID":patientID
       });
-      console.log("response data:",response.data)
+      console.log("response data:",response.data.patient.Images[0])
       setSelectedPatientDetails(response.data.patient);
       console.log("Response Data:",selectedPatientDetails)
-      
+      setResponseData(response.data);
       setLoading(false);
+      console.log(responseData)
     } catch (error) {
       console.error("Error fetching patient details:", error);
       setError("Failed to fetch patient details. Please try again.");
       setLoading(false);
     }
-  };
 
+  };
   useEffect(() => {
     if (patientID) {
       handleViewPatient(patientID);
@@ -87,7 +91,10 @@ const ViewPatient = () => {
     }
 
     const formData = new FormData();
+    console.log("p:0"+patientID)
     formData.append("image", file);
+    formData.append("id", patientID)
+    formData.append("type", type)
 
     try {
       // Send the file to the backend
@@ -101,6 +108,7 @@ const ViewPatient = () => {
         }
       );
       setPrediction(response.data.prediction); // Assume the backend returns a prediction
+      setResponseData(response.data);
       console.log("Prediction:", response.data.prediction);
     } catch (error) {
       console.error("Error uploading the image:", error);
@@ -147,6 +155,7 @@ const ViewPatient = () => {
   return (
     <>
       <DashboardHeader />
+      
       <div className="bg-slate-400 flex justify-between">
         {/* Patient Info */}
         <div className="w-1/3 p-4 border-x-2">
@@ -283,7 +292,7 @@ const ViewPatient = () => {
           {/* Cancer Details */}
           <div className="ml-8 flex flex-col">
             <div className="p-3 rounded-sm flex items-center my-2 bg-slate-400 w-full h-1/3">
-              <b>Cancer Percentage: </b>20%
+              <b>Cancer Percentage: </b>{prediction}
             </div>
             <div className="p-3 rounded-sm flex items-center my-2 bg-slate-400 w-full h-1/3">
               <b>Model Accuracy: </b>96%
@@ -450,13 +459,13 @@ const ViewPatient = () => {
         >
           {showHistory ? "Hide Patient's History" : "View Patient's History"}
         </button>
-
+        
         {/* Patient's history section, shown conditionally */}
         {showHistory && (
           <div className="flex flex-col p-6 items-center">
             <div className="bg-slate-400 px-12 pr-52 py-12 rounded-2xl mt-4">
               <p>
-                <b>Consult Date: </b> 10-07-2024
+                <b>Consult Date: </b> 06-08-2024
               </p>
               <p>
                 <b>Diagnosis Information:</b> About the Diagnosis Information
@@ -464,7 +473,7 @@ const ViewPatient = () => {
               </p>
               <ul>
                 <li>
-                  <b>Weight: </b> 68 Kgs
+                  <b>Weight: </b> {responseData.Weight}
                 </li>
                 <li>
                   <b>Height: </b> 172 cm

@@ -27,21 +27,20 @@ function SignInForm() {
         password,
       });
 
-      const { "jwt-token": token, role } = response.data;
-
+      const { "jwt-token": token, user} = response.data;
+      const role = response.data.user.Role;
       if (token) {
         Cookies.set("jwt-token", token, { expires: 7 }); // Save token to cookies
         login(token);
-
         switch (role) {
           case "admin":
             navigate("/admin/dashboard");
             break;
           case "trainer":
-            navigate("/trainer/dashboard");
+            navigate("/trainer/dashboard",{state:user});
             break;
           default:
-            navigate("/user/dashboard");
+            navigate("/user/dashboard",{state:user});
         }
       } else {
         setError("Login failed, token not received.");

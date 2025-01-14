@@ -84,7 +84,7 @@ const AddUserForm = ({ setIsAddUserOpen, handleAddUserData }) => {
             >
               <option value="">Select Role</option>
               <option value="admin">Admin</option>
-              <option value="nurse">Trainer</option>
+              <option value="trainer">Trainer</option>
               <option value="user">User</option>
             </select>
           </div>
