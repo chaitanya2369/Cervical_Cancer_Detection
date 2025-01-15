@@ -24,12 +24,12 @@ func generateOtp() string{
 
 func sendOtp(otp string, email string) error{
    m := gomail.NewMessage()
-    m.SetHeader("From", "rockingraja9912@gmail.com")
+    m.SetHeader("From", "cervicalcancerdetection@gmail.com")
     m.SetHeader("To", email)
     m.SetHeader("Subject", "Your OTP Code")
     m.SetBody("text/plain", fmt.Sprintf("Your OTP is: %s", otp))
 
-	d := gomail.NewDialer("smtp.gmail.com", 587, "rockingraja9912@gmail.com", "tlta fqan psby kynf") // Update with your SMTP settings
+	d := gomail.NewDialer("smtp.gmail.com", 587, "cervicalcancerdetection@gmail.com", "saua acjn snki ddvt") // Update with your SMTP settings
 
     return d.DialAndSend(m)
 }
