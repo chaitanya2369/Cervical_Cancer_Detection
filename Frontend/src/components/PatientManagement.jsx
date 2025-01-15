@@ -5,35 +5,18 @@ const PatientManagement = ({
   tab,
   setTab,
   handleAddPatient,
-  handleEditPatient,
+  filteredPatients
 }) => {
   const navigate = useNavigate();
 
-  // Dummy data for patients
-  const dummyPatients = [
-    {
-      id: "CC12540",
-      name: "Amal Devis",
-      contact: "+91 7893657893",
-      doctor: "Dr. M.N.V.S.Hari Vamsi",
-      status: "Active Treatment",
-    },
-    {
-      id: "CC12541",
-      name: "Jane Doe",
-      contact: "+91 9876543210",
-      doctor: "Dr. Ravi Kumar",
-      status: "Inactive Treatment",
-    },
-  ];
-
-  // Filter patients based on the current tab
-  const filteredPatients =
-    tab === "Active Treatment"
-      ? dummyPatients.filter((patient) => patient.status === "Active Treatment")
-      : tab === "Inactive Treatment"
-      ? dummyPatients.filter((patient) => patient.status === "Inactive Treatment")
-      : dummyPatients;
+  // // Filter patients based on the current tab
+  // const filteredPatients =
+  //   tab === "Active Treatment"
+  //     ? filteredPatients.filter((patient) => patient.status === "Active Treatment")
+  //     : tab === "Inactive Treatment"
+  //     ? filteredPatients.filter((patient) => patient.status === "Inactive Treatment")
+  //     : filteredPatients;
+  console.log(filteredPatients);
 
   return (
     <div>
@@ -78,7 +61,7 @@ const PatientManagement = ({
             <th className="p-2 text-left">Name</th>
             <th className="p-2 text-left">Contact</th>
             <th className="p-2 text-left">Doctor</th>
-            <th className="p-2 text-left">Actions</th>
+            {/* <th className="p-2 text-left">Actions</th> */}
           </tr>
         </thead>
         <tbody>
@@ -93,13 +76,13 @@ const PatientManagement = ({
               <tr
                 key={patient.id}
                 className="cursor-pointer hover:bg-gray-100"
-                onClick={() => navigate(`/user/viewpatient/${patient.id}`)}
+                onClick={() => navigate(`/user/viewpatient`, { state: { patientID: patient.ID } })}
               >
-                <td className="p-2">{patient.id}</td>
-                <td className="p-2">{patient.name}</td>
-                <td className="p-2">{patient.contact}</td>
-                <td className="p-2">{patient.doctor}</td>
-                <td className="p-2">
+                <td className="p-2">{patient.ID}</td>
+                <td className="p-2">{patient.Name}</td>
+                <td className="p-2">{patient.PhoneNumber}</td>
+                <td className="p-2">{patient.Doctor.Name}</td>
+                {/* <td className="p-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent triggering row click
@@ -109,7 +92,7 @@ const PatientManagement = ({
                   >
                     Edit
                   </button>
-                </td>
+                </td> */}
               </tr>
             ))
           )}

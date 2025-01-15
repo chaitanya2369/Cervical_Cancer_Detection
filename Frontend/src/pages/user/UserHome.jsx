@@ -3,9 +3,9 @@ import axios from "axios";
 import DashboardHeader from "../../components/DashboardHeader";
 import Overview from "../../components/Overview";
 import PatientManagement from "../../components/PatientManagement";
-import EditPatientModal from "../../components/EditPatientModal";
 import AddPatientForm from "../../components/addPatientForm";
-import TrainModel from "../trainer/TrainModel"; // Import TrainModel component
+import TrainModel from "../trainer/TrainModel"; 
+import { useLocation } from "react-router-dom";
 
 const UserHome = () => {
   const [view, setView] = useState("overview");
@@ -14,25 +14,30 @@ const UserHome = () => {
   const [activePatients, setActivePatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
+  const [isEditPatientModalOpen, setIsEditPatientModalOpen] = useState(false);
 
+  const location = useLocation();
+  const { state } = location;
+  console.log(state)
   // Fetch patients data
   const fetchPatients = async () => {
     try {
       const inActivePatientsResponse = await axios.get(
-        "http://localhost:8080/admin/get-inactive"
+        "http://localhost:8080/user/get-Inactive"
       );
-      setInActivePatients(inActivePatientsResponse.data?.patients || []);
-
+      setInActivePatients(inActivePatientsResponse.data?.active_patients || []);
+  
       const activePatientsResponse = await axios.get(
-        "http://localhost:8080/admin/get-active"
+        "http://localhost:8080/user/get-active"
       );
-      setActivePatients(activePatientsResponse.data?.patients || []);
+      setActivePatients(activePatientsResponse.data.active_patients || []);
     } catch (error) {
       console.error("Error fetching patients:", error);
       setInActivePatients([]);
       setActivePatients([]);
     }
   };
+  
 
   useEffect(() => {
     fetchPatients(); // Fetch patients on initial load
@@ -47,8 +52,8 @@ const UserHome = () => {
       : [...activePatients, ...inActivePatients];
 
   // Handle opening and closing of Add Patient modal
-  const handleAddPatient = () => {
-    setIsAddPatientModalOpen(true);
+  const handleAddPatient = () => { 
+    setIsAddPatientModalOpen(true); // Opens the modal
   };
 
   const handleCloseAddPatientModal = () => {
@@ -57,8 +62,9 @@ const UserHome = () => {
 
   // Handle adding new patient data
   const handleAddPatientData = async (patientDetails) => {
+    console.log(patientDetails);
     try {
-      await axios.post("http://localhost:8080/admin/add-patient", patientDetails);
+      await axios.post("http://localhost:8080/user/add-patient", patientDetails);
       alert("Patient added successfully!");
       fetchPatients();
     } catch (error) {
@@ -68,15 +74,15 @@ const UserHome = () => {
   };
 
   // Handle editing patient data
-  const handleEditPatient = (patient) => {
-    setSelectedPatient(patient);
+  const handleEditPatientData = (patient) => {
+    setSelectedPatient(patient); // Set the selected patient for editing
   };
 
   const handleUpdatePatientData = async (updatedPatient) => {
     try {
-      await axios.put("http://localhost:8080/admin/update-patient", updatedPatient);
+      await axios.put("http://localhost:8080/user/update-patient", updatedPatient);
       alert("Patient details updated successfully!");
-      fetchPatients();
+      fetchPatients(); // Re-fetch patients to ensure the data is up-to-date
       setSelectedPatient(null); // Close the modal after update
     } catch (error) {
       console.error("Error updating patient:", error);
@@ -118,6 +124,7 @@ const UserHome = () => {
                       view === "Train Model" ? "bg-blue-500 text-white" : "text-gray-600"
                     }`}
                     onClick={() => setView("Train Model")}
+                    disabled={!state.CanTrain}
                   >
                     Train Model
                   </button>
@@ -134,7 +141,6 @@ const UserHome = () => {
                 setTab={setTab}
                 filteredPatients={filteredPatients}
                 handleAddPatient={handleAddPatient}
-                handleEditPatient={handleEditPatient}
               />
             )}
             {view === "Train Model" &&  <TrainModel />} {/* Render Train Model */}
@@ -144,19 +150,20 @@ const UserHome = () => {
         {/* Add Patient Modal */}
         {isAddPatientModalOpen && (
           <AddPatientForm
-            setIsAddPatientModalOpen={setIsAddPatientModalOpen}
+            setIsAddPatientOpen={setIsAddPatientModalOpen}
             handleAddPatientData={handleAddPatientData}
           />
         )}
 
         {/* Edit Patient Modal */}
-        {selectedPatient && (
-          <EditPatientModal
+        {/* {isEditPatientModalOpen && selectedPatient && (
+          <EditPatientForm
             patient={selectedPatient}
+            setIsEditPatientModalOpen={setIsEditPatientModalOpen}
             handleUpdatePatientData={handleUpdatePatientData}
-            closeModal={() => setSelectedPatient(null)}
+            setSelectedPatient={setSelectedPatient}
           />
-        )}
+        )} */}
       </div>
     </>
   );

@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import DashboardHeader from "../../components/DashboardHeader";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import axios from "axios";
 
 const ViewPatient = () => {
   const [dicImage, setDicImage] = useState(null);
@@ -16,8 +19,57 @@ const ViewPatient = () => {
   const [followUpTests, setFollowUpTests] = useState([]);
   const [newTest, setNewTest] = useState("");
   const [activeTab, setActiveTab] = useState("Notes");
+  const [prediction,setPrediction] = useState("NA");
+
+  const [responseData,setResponseData] = useState([]);
 
   const [showHistory, setShowHistory] = useState(false);
+
+  const location = useLocation();
+  const patientID = location.state?.patientID;
+  const [selectedPatientDetails, setSelectedPatientDetails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  
+  const handleViewPatient = async (patientID) => {
+    console.log("Patient ID: ",patientID);
+    try {
+      const response = await axios.post("http://localhost:8080/user/get-patient", {
+        "ID":patientID
+      });
+      console.log("response data:",response.data.patient.Images[0])
+      setSelectedPatientDetails(response.data.patient);
+      console.log("Response Data:",selectedPatientDetails)
+      setResponseData(response.data);
+      setLoading(false);
+      console.log(responseData)
+    } catch (error) {
+      console.error("Error fetching patient details:", error);
+      setError("Failed to fetch patient details. Please try again.");
+      setLoading(false);
+    }
+
+  };
+  useEffect(() => {
+    if (patientID) {
+      handleViewPatient(patientID);
+    }
+  }, [patientID]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (!selectedPatientDetails) {
+    return <div>No patient details found</div>;
+  }
+
+
 
   const toggleHistory = () => {
     setShowHistory(!showHistory);
@@ -27,13 +79,41 @@ const ViewPatient = () => {
     setCurrentImage(type);
   };
 
-  const handleImageUpload = (event, type) => {
-    const file = URL.createObjectURL(event.target.files[0]);
+  const handleImageUpload = async (event, type) => {
+    // const file = URL.createObjectURL(event.target.files[0]);
+    const file = event.target.files[0];
     if (type === "DIC") {
-      setDicImage(file);
+      // setDicImage(file);
+      setDicImage(URL.createObjectURL(file));
     } else {
-      setAfImage(file);
+      // setAfImage(file);
+      setAfImage(URL.createObjectURL(file));
     }
+
+    const formData = new FormData();
+    console.log("p:0"+patientID)
+    formData.append("image", file);
+    formData.append("id", patientID)
+    formData.append("type", type)
+
+    try {
+      // Send the file to the backend
+      const response = await axios.post(
+        "http://localhost:8080/user/predict",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      setPrediction(response.data.prediction); // Assume the backend returns a prediction
+      setResponseData(response.data);
+      console.log("Prediction:", response.data.prediction);
+    } catch (error) {
+      console.error("Error uploading the image:", error);
+    }
+
   };
 
   const prescriptionOptions = ["Medicine A", "Medicine B", "Medicine C"];
@@ -70,27 +150,30 @@ const ViewPatient = () => {
     setFollowUpTests(followUpTests.filter((t) => t !== test));
   };
 
+  
+
   return (
     <>
       <DashboardHeader />
+      
       <div className="bg-slate-400 flex justify-between">
         {/* Patient Info */}
         <div className="w-1/3 p-4 border-x-2">
           <ul>
             <li className="my-1">
-              <b>Patient Id: </b>CC1250
+              <b>Patient Id: </b>{selectedPatientDetails.ID}
             </li>
             <li className="my-1">
-              <b>Name: </b>Amal Devis
+              <b>Name: </b>{selectedPatientDetails.Name}
             </li>
             <li className="my-1">
-              <b>Age: </b>20
+              <b>Age: </b>{selectedPatientDetails.Age}
             </li>
             <li className="my-1">
-              <b>Contact: </b>+91 8125455369
+              <b>Contact: </b>{selectedPatientDetails.PhoneNumber}
             </li>
             <li className="my-1">
-              <b>Address:</b>Visakhapatnam, Andhra Pradesh
+              <b>Address:</b>{selectedPatientDetails.Address}
             </li>
           </ul>
         </div>
@@ -99,16 +182,16 @@ const ViewPatient = () => {
         <div className="p-4 w-1/3 border-x-2">
           <ul>
             <li className="my-1">
-              <b>Consult Date: </b>01/09/2024
+              <b>Consult Date: </b>{selectedPatientDetails.ConsultDate}
             </li>
             <li className="my-1">
-              <b>B.P: </b>110/80 mmHg
+              <b>B.P: </b>{selectedPatientDetails.Vitals.BP}
             </li>
             <li className="my-1">
-              <b>Weight: </b>62 Kgs
+              <b>Weight: </b>{selectedPatientDetails.Vitals.Weight}
             </li>
             <li className="my-1">
-              <b>SPo2: </b>99% RA
+              <b>SPo2: </b>{selectedPatientDetails.Vitals.SPO2}
             </li>
           </ul>
         </div>
@@ -117,13 +200,13 @@ const ViewPatient = () => {
         <div className="p-4 w-1/3 border-x-2">
           <ul>
             <li className="my-1">
-              <b>Doctor Name: </b>Dr. M.N.V.S Hari Vamsi
+              <b>Doctor Name: </b>{selectedPatientDetails.Doctor.Name}
             </li>
             <li className="my-1">
-              <b>Doctor Id: </b>C550245
+              <b>Doctor Id: </b>{selectedPatientDetails.Doctor.ID}
             </li>
             <li className="my-1">
-              <b>Specialisation: </b>Gynecologic Oncologist
+              <b>Specialisation: </b>{selectedPatientDetails.Doctor.Specialization}
             </li>
           </ul>
         </div>
@@ -209,7 +292,7 @@ const ViewPatient = () => {
           {/* Cancer Details */}
           <div className="ml-8 flex flex-col">
             <div className="p-3 rounded-sm flex items-center my-2 bg-slate-400 w-full h-1/3">
-              <b>Cancer Percentage: </b>20%
+              <b>Cancer Percentage: </b>{prediction}
             </div>
             <div className="p-3 rounded-sm flex items-center my-2 bg-slate-400 w-full h-1/3">
               <b>Model Accuracy: </b>96%
@@ -376,13 +459,13 @@ const ViewPatient = () => {
         >
           {showHistory ? "Hide Patient's History" : "View Patient's History"}
         </button>
-
+        
         {/* Patient's history section, shown conditionally */}
         {showHistory && (
           <div className="flex flex-col p-6 items-center">
             <div className="bg-slate-400 px-12 pr-52 py-12 rounded-2xl mt-4">
               <p>
-                <b>Consult Date: </b> 10-07-2024
+                <b>Consult Date: </b> 06-08-2024
               </p>
               <p>
                 <b>Diagnosis Information:</b> About the Diagnosis Information
@@ -390,7 +473,7 @@ const ViewPatient = () => {
               </p>
               <ul>
                 <li>
-                  <b>Weight: </b> 68 Kgs
+                  <b>Weight: </b> {responseData.Weight}
                 </li>
                 <li>
                   <b>Height: </b> 172 cm

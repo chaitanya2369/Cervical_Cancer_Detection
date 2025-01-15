@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
 
-const AddPatientForm = ({ handleAddPatientData, setIsAddPatientModalOpen }) => {
+const AddPatientForm = ({ handleAddPatientData, setIsAddPatientOpen }) => {
   const [patientDetails, setPatientDetails] = useState({
     name: "",
     age: "",
@@ -20,7 +19,6 @@ const AddPatientForm = ({ handleAddPatientData, setIsAddPatientModalOpen }) => {
       specialization: "",
     },
   });
-  const [doctorSuggestions, setDoctorSuggestions] = useState([]);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -42,34 +40,11 @@ const AddPatientForm = ({ handleAddPatientData, setIsAddPatientModalOpen }) => {
     }));
   };
 
-  // Fetch doctor suggestions
-  const fetchDoctorSuggestions = async (name) => {
-    try {
-      const response = await axios.get(`http://localhost:8080/doctors?name=${name}`);
-      setDoctorSuggestions(response.data);
-    } catch (err) {
-      console.error("Error fetching doctors:", err);
-    }
-  };
-
-  // Select doctor from suggestions
-  const handleSelectDoctor = (doctor) => {
-    setPatientDetails((prev) => ({
-      ...prev,
-      doctor: {
-        name: doctor.name,
-        id: doctor.id,
-        specialization: doctor.specialization,
-      },
-    }));
-    setDoctorSuggestions([]); // Clear suggestions
-  };
-
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     handleAddPatientData(patientDetails);
-    setIsAddPatientModalOpen(false);
+    setIsAddPatientOpen(false);
   };
 
   return (
@@ -78,7 +53,7 @@ const AddPatientForm = ({ handleAddPatientData, setIsAddPatientModalOpen }) => {
         {/* Close Button */}
         <button
           className="absolute top-2 right-5 text-2xl font-bold text-gray-600 hover:text-red-500"
-          onClick={() => setIsAddPatientModalOpen(false)}
+          onClick={() => setIsAddPatientOpen(false)}
         >
           ✕
         </button>
@@ -111,10 +86,10 @@ const AddPatientForm = ({ handleAddPatientData, setIsAddPatientModalOpen }) => {
             />
             <input
               type="text"
-              name="contact"
+              name="PhoneNumber"
               placeholder="Contact Number"
               className="block w-full p-3 border rounded-lg"
-              value={patientDetails.contact}
+              value={patientDetails.PhoneNumber}
               onChange={handleChange}
               required
             />
@@ -182,23 +157,10 @@ const AddPatientForm = ({ handleAddPatientData, setIsAddPatientModalOpen }) => {
               value={patientDetails.doctor.name}
               onChange={(e) => {
                 handleNestedChange("doctor", "name", e.target.value);
-                fetchDoctorSuggestions(e.target.value);
+                // fetchDoctorSuggestions(e.target.value);
               }}
               required
             />
-            {doctorSuggestions.length > 0 && (
-              <ul className="absolute top-full left-0 w-full bg-white border rounded-lg shadow-lg mt-1 z-10">
-                {doctorSuggestions.map((doctor) => (
-                  <li
-                    key={doctor.id}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleSelectDoctor(doctor)}
-                  >
-                    {doctor.name} - {doctor.specialization}
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <input
@@ -206,14 +168,20 @@ const AddPatientForm = ({ handleAddPatientData, setIsAddPatientModalOpen }) => {
               placeholder="Doctor ID"
               className="block w-full p-3 border rounded-lg"
               value={patientDetails.doctor.id}
-              readOnly
+              onChange={(e) => {
+                handleNestedChange("doctor", "id", e.target.value);
+              }}
+              required
             />
             <input
               type="text"
               placeholder="Specialization"
               className="block w-full p-3 border rounded-lg"
               value={patientDetails.doctor.specialization}
-              readOnly
+              onChange={(e) => {
+                handleNestedChange("doctor", "specialization", e.target.value);
+              }}
+              required
             />
           </div>
 

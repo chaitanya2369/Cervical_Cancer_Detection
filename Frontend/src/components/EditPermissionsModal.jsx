@@ -1,17 +1,40 @@
 import React, { useState, useEffect } from "react";
 
-const EditPermissionsModal = ({ selectedUser, handleUpdatePermissions, setSelectedUser }) => {
+const EditPermissionsModal = ({
+  selectedUser,
+  handleUpdatePermissions,
+  setSelectedUser,
+}) => {
   const [formData, setFormData] = useState({ ...selectedUser });
 
   useEffect(() => {
     setFormData({ ...selectedUser });
   }, [selectedUser]);
 
+  // Automatically turn off "canTrain" and "canPredict" when "isApproved" is false
+  useEffect(() => {
+    if (!formData.isApproved) {
+      setFormData((prev) => ({
+        ...prev,
+        canTrain: false,
+        canPredict: false,
+      }));
+    }
+  }, [formData.isApproved]);
+
   const handleToggleChange = (name) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: !prev[name], // Toggle the boolean value
-    }));
+    setFormData((prev) => {
+      // Prevent toggling "canTrain" or "canPredict" if "isApproved" is false
+      if (!formData.isApproved && (name === "canTrain" || name === "canPredict")) {
+        return prev; // No state change
+      }
+
+      // Toggle the value for the specified field
+      return {
+        ...prev,
+        [name]: !prev[name],
+      };
+    });
   };
 
   const handleSubmit = (e) => {

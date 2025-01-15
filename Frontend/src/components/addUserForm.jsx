@@ -84,9 +84,8 @@ const AddUserForm = ({ setIsAddUserOpen, handleAddUserData }) => {
             >
               <option value="">Select Role</option>
               <option value="admin">Admin</option>
-              <option value="doctor">Doctor</option>
-              <option value="nurse">Nurse</option>
-              <option value="patient">Patient</option>
+              <option value="trainer">Trainer</option>
+              <option value="user">User</option>
             </select>
           </div>
           {/* Can Predict */}
