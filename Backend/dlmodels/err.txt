@@ -1,0 +1,68 @@
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.62.154:5000
+Press CTRL+C to quit
+[2025-01-22 16:25:40,132] ERROR in app: Exception on /predict [POST]
+Traceback (most recent call last):
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Sanmai\Desktop\MajProject\Cervical_Cancer_Detection\Backend\dlmodels\service.py", line 35, in predict
+    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+cv2.error: OpenCV(4.11.0) D:\a\opencv-python\opencv-python\opencv\modules\imgcodecs\src\loadsave.cpp:993: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'
+
+127.0.0.1 - - [22/Jan/2025 16:25:40] "POST /predict HTTP/1.1" 500 -
+127.0.0.1 - - [22/Jan/2025 16:31:29] "POST /predict HTTP/1.1" 200 -
+[2025-01-22 16:38:53,087] ERROR in app: Exception on /predict [POST]
+Traceback (most recent call last):
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Sanmai\Desktop\MajProject\Cervical_Cancer_Detection\Backend\dlmodels\service.py", line 35, in predict
+    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+cv2.error: OpenCV(4.11.0) D:\a\opencv-python\opencv-python\opencv\modules\imgcodecs\src\loadsave.cpp:993: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'
+
+127.0.0.1 - - [22/Jan/2025 16:38:53] "POST /predict HTTP/1.1" 500 -
+[2025-01-22 16:44:10,914] ERROR in app: Exception on /predict [POST]
+Traceback (most recent call last):
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Sanmai\Desktop\MajProject\Cervical_Cancer_Detection\Backend\dlmodels\service.py", line 35, in predict
+    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+cv2.error: OpenCV(4.11.0) D:\a\opencv-python\opencv-python\opencv\modules\imgcodecs\src\loadsave.cpp:993: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'
+
+127.0.0.1 - - [22/Jan/2025 16:44:11] "POST /predict HTTP/1.1" 500 -
+127.0.0.1 - - [22/Jan/2025 16:44:56] "POST /predict HTTP/1.1" 200 -
+127.0.0.1 - - [22/Jan/2025 16:45:10] "POST /predict HTTP/1.1" 200 -
+[2025-01-22 16:45:41,082] ERROR in app: Exception on /predict [POST]
+Traceback (most recent call last):
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\Sanmai\AppData\Local\Programs\Python\Python310\lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\Sanmai\Desktop\MajProject\Cervical_Cancer_Detection\Backend\dlmodels\service.py", line 35, in predict
+    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+cv2.error: OpenCV(4.11.0) D:\a\opencv-python\opencv-python\opencv\modules\imgcodecs\src\loadsave.cpp:993: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'
+
+127.0.0.1 - - [22/Jan/2025 16:45:41] "POST /predict HTTP/1.1" 500 -
