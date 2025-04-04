@@ -6,6 +6,7 @@ import (
 	s3service "Cervical_Cancer_Detection/s3Service"
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"log"
 
@@ -23,6 +24,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var predictionService string
+
+func init(){
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+	predictionService = os.Getenv("PREDICTION_SERVICE")
+}
 
 func GetActivePatients(c *gin.Context) {
 	var patients []models.PATIENT
@@ -169,13 +179,95 @@ func uploadImageInS3(file multipart.File, key string) {
 	if err != nil {
 		log.Fatal("Failed to upload image:", err)
 	}
+	log.Print("uploaded image")
 }
 
-var currentNumber = 60 // Global variable to store the current number
+// var currentNumber = 60 // Global variable to store the current number
 
-func getPredictionWithImage() string {
-	currentNumber = (currentNumber + 1) % 101 // Increment and wrap around after 100
-	return strconv.Itoa(currentNumber)        // Convert to string
+// func deleteFile(){
+// 	filePath:="C:/Users/Sanmai/Desktop/MajProject/Cervical_Cancer_Detection/Backend/handlers/image.jpeg"
+
+// 	_,err:=os.Stat(filePath)
+// 	if os.IsExist(err){
+// 		os.Remove(filePath)
+// 	}
+// }
+
+func getPredictionFromPredictionService(image multipart.File) string {
+     
+	// deleteFile()
+	localFile,err:= os.Create("C:/Users/Sanmai/Desktop/MajProject/Cervical_Cancer_Detection/Backend/handlers/image.jpeg")
+	// localFile, err := os.OpenFile("C:/Users/Sanmai/Desktop/MajProject/Cervical_Cancer_Detection/Backend/handlers/image.jpeg", os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	
+
+    _, err = io.Copy(localFile, image)
+
+	defer localFile.Close()
+
+	if err!=nil{
+		log.Fatal(err)
+	}
+
+    file,err:=os.Open("C:/Users/Sanmai/Desktop/MajProject/Cervical_Cancer_Detection/Backend/handlers/image.jpeg")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+    body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)	
+
+    
+	part,err:= writer.CreateFormFile("image","image.jpeg")
+    
+	if err != nil {
+		log.Fatal("Error creating form file:", err)
+	}
+
+	_,err=io.Copy(part,file)
+	writer.Close()
+    if err != nil {
+		log.Println("Error copying file:", err)
+	}
+
+    url:="http://127.0.0.1:5000/predict"
+	req,err:=http.NewRequest("POST", url, body)
+
+
+	if err!=nil{
+		log.Fatal(err)
+	}
+    
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client:=&http.Client{
+		Timeout: time.Second*20,
+	}
+    resp,err:=client.Do(req)
+
+	if err != nil {
+		log.Println("Error sending request:", err)
+	}
+    
+
+	bodyBytes,err:=io.ReadAll(resp.Body)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	bodyString := string(bodyBytes)
+	
+
+	defer resp.Body.Close()
+	
+	log.Println(bodyString)
+
+	return bodyString
 }
 
 func UploadImageForPatientAndPredict(c *gin.Context) { //patientID, image
@@ -187,34 +279,33 @@ func UploadImageForPatientAndPredict(c *gin.Context) { //patientID, image
 
 	patientId := c.Request.FormValue("id")
 	imageType := c.Request.FormValue("type")
-
-	log.Print(patientId)
-	log.Print(imageType)
+    
+    
+	
 
 	currentTime := time.Now()
 	formattedTime := currentTime.Format("2006-01-02 15:04:05") // YYYY-MM-DD HH:MM:SS
 
 	key := patientId + formattedTime + ".jpg"
 
-	uploadImageInS3(image, key) //send image to this later
-
 	imageURL := "https://ccdt.s3.ap-south-1.amazonaws.com/" + key
-
-	if err != nil {
-		c.JSON(http.StatusAccepted, gin.H{"error": "Error in uploading image in S3 bucket"})
-		return
-	}
-
+	
 	newImage := models.ImageData{
 		URL:        imageURL,
 		InsertedAt: time.Now(),
 		Type:       imageType,
 	}
 
+	prediction:=getPredictionFromPredictionService(image)
+
+	uploadImageInS3(image, key) //send image to this later
+
+	log.Println(prediction)
+
 	patientsCollection := db.Client.Database("db1").Collection("patients")
 
 	filter := gin.H{"_id": patientId}
-	update := gin.H{"$push": gin.H{"images": newImage}}
+	update := gin.H{"$push": gin.H{"images": newImage,"prediction": prediction}}
 
 	_, err = patientsCollection.UpdateOne(context.TODO(), filter, update)
 
@@ -222,6 +313,71 @@ func UploadImageForPatientAndPredict(c *gin.Context) { //patientID, image
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+    
+	var result struct{
+		Prediction string `json:"prediction"`
+	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Image Uploaded", "prediction": getPredictionWithImage()})
+	err=json.Unmarshal([]byte(prediction),&result)
+
+	if err!=nil{
+		panic(err)
+	}
+
+	log.Println(result.Prediction)
+
+	var predictions [][]float64
+
+	err=json.Unmarshal([]byte(result.Prediction),&predictions)
+
+	if err!=nil{
+		log.Fatalf("Error parsing prediction field: %v", err)
+	}
+
+	notCancer:="0"
+
+	if len(predictions)>0 && len(predictions[0])>0{
+		strValue:=strconv.FormatFloat(predictions[0][0],'f',6,64)
+		log.Println(strValue)
+	    prediction = strValue
+        
+		notCancer=strconv.FormatFloat(predictions[0][1],'f',6,64)
+	}
+    
+
+	c.JSON(http.StatusOK, gin.H{"prediction": prediction,"notCancer":notCancer})
+}
+
+
+func CsvFilePredict(c* gin.Context){
+	var jsonData interface{}
+    
+	err:=c.BindJSON(&jsonData);
+	if  err!=nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err, "success": false})
+		return 
+	}
+    
+	log.Print(jsonData)
+	url:=predictionService+"/predict"
+    jsonBytes,err:=json.Marshal(jsonData)
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"error":err, "success": false})
+		return
+	}
+
+	resp,err:=http.Post(url,"application/json", bytes.NewBuffer(jsonBytes))
+	if err!=nil{
+        c.JSON(http.StatusInternalServerError, gin.H{"error":err, "success": false})
+		return
+	}
+	defer resp.Body.Close()
+
+	var flaskResp interface{}
+	if err:=json.NewDecoder(resp.Body).Decode(&flaskResp); err!=nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"error":err, "success": false})
+		return
+	}
+
+	c.JSON(http.StatusOK, flaskResp)
 }

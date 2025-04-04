@@ -8,15 +8,26 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 )
+
+var smtpPasscode string
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+	smtpPasscode = os.Getenv("SMTP_PASSCODE")
+}
 
 func generateOtp() string {
 	return strconv.Itoa(rand.Intn(1000000))
@@ -29,57 +40,9 @@ func sendOtp(otp string, email string) error {
 	m.SetHeader("Subject", "Your OTP Code")
 	m.SetBody("text/plain", fmt.Sprintf("Your OTP is: %s", otp))
 
-	d := gomail.NewDialer("smtp.gmail.com", 587, "cervicalcancerdetection@gmail.com", "saua acjn snki ddvt") // Update with your SMTP settings
+	d := gomail.NewDialer("smtp.gmail.com", 587, "cervicalcancerdetection@gmail.com", smtpPasscode) // Update with your SMTP settings
 
 	return d.DialAndSend(m)
-}
-
-func SignUp(c *gin.Context) {
-	var user models.OTPuser
-
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	var tempUser models.USER
-	userCollection := db.Client.Database("db1").Collection("users")
-	err := userCollection.FindOne(context.TODO(), gin.H{"email": user.Email}).Decode(&tempUser) //check if already registered
-
-	if err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "User Already present"})
-		return
-	}
-
-	otp := generateOtp()
-	err = sendOtp(otp, user.Email)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "OTP not sent"})
-		return
-	}
-
-	user.Otp = otp
-	user.ExpiresAt = time.Now().Add(30 * time.Minute)
-
-	otpUsersCollection := db.Client.Database("db1").Collection("otp-users")
-
-	res, err := otpUsersCollection.DeleteOne(context.TODO(), bson.M{"email": user.Email}) //delete the previous otp
-
-	if err != nil {
-		log.Fatal("Error while Deleting")
-	}
-
-	log.Printf("Deleted %d", res.DeletedCount)
-
-	_, err = otpUsersCollection.InsertOne(context.TODO(), user) //insert new otp
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Error"})
-		return
-	}
-
-	c.JSON(http.StatusAccepted, gin.H{"message": "Yay! OTP generated check it"})
 }
 
 func hashPassword(password string) (string, error) {
@@ -92,76 +55,135 @@ func hashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
+func SignUp(c *gin.Context) {
+	var otpUser models.OTPuser //You only need email and role
+
+	if err := c.ShouldBindJSON(&otpUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "success": false})
+		return
+	}
+
+	if otpUser.Role=="" || otpUser.Email==""{    //check if email and role sent
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email or Role Not entered", "success": false})
+		return
+	}
+    
+	if otpUser.Role=="user"{
+		var tempUser models.USER
+	    userCollection := db.Client.Database("db1").Collection("users")
+	    err := userCollection.FindOne(context.TODO(), gin.H{"email": otpUser.Email}).Decode(&tempUser) //check if already registered
+
+		if err == nil {
+		    c.JSON(http.StatusConflict, gin.H{"message": "User Already present", "success": false})
+		    return
+	    }
+	}else{
+		var tempUser models.USER
+	    userCollection := db.Client.Database("db1").Collection("admins")
+	    err := userCollection.FindOne(context.TODO(), gin.H{"email": otpUser.Email}).Decode(&tempUser) //check if already registered
+
+		if err == nil {
+		    c.JSON(http.StatusConflict, gin.H{"message": "User Already present", "success": false})
+		    return
+	    }
+	}
+
+	otp := generateOtp()
+	err := sendOtp(otp, otpUser.Email)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "OTP not sent", "success": false})
+		return
+	}
+
+	otpUser.Otp = otp
+	otpUser.ExpiresAt = time.Now().Add(10 * time.Minute)
+
+	otpUsersCollection := db.Client.Database("db1").Collection("otpUsers")
+
+	_, err = otpUsersCollection.DeleteOne(context.TODO(), bson.M{"email": otpUser.Email}) //delete the previous otp, if exists
+
+	if err != nil {
+		log.Fatal("Error while Deleting")
+	}
+	_, err = otpUsersCollection.InsertOne(context.TODO(), otpUser) //insert new otp
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Error", "success": false})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, gin.H{"message": "Yay! OTP generated check it", "success": true})
+}
+
 type USER_DETAILS struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty"`
 	Name     string             `bson:"name"`
 	Email    string             `bson:"email"`
 	Password string             `bson:"password"`
 	Otp      string             `bson:"otp"`
+	Role     string             `bson:"role"`
 }
 
 func VerifyOtp(c *gin.Context) {
 	var newUser USER_DETAILS
 	if err := c.ShouldBindJSON(&newUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "success": false})
 		return
 	}
 
-	otpUsersCollection := db.Client.Database("db1").Collection("otp-users")
+	otpUsersCollection := db.Client.Database("db1").Collection("otpUsers")
 	var tempUser models.OTPuser
 	err := otpUsersCollection.FindOne(context.TODO(), gin.H{"email": newUser.Email}).Decode(&tempUser)
 
 	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"message": "Generate otp first"})
+		c.JSON(http.StatusConflict, gin.H{"message": "Generate otp first", "success": false})
 		return
 	}
 
 	if tempUser.Otp != newUser.Otp {
-		c.JSON(http.StatusNotAcceptable, gin.H{"message": "OTP not matched"})
+		c.JSON(http.StatusNotAcceptable, gin.H{"message": "OTP not matched", "success": false})
 		return
 	}
 
 	if time.Now().After(tempUser.ExpiresAt) {
-		c.JSON(http.StatusNotAcceptable, gin.H{"message": "Timeup for the otp"})
-		res, err := otpUsersCollection.DeleteOne(context.TODO(), bson.M{"email": newUser.Email})
+		c.JSON(http.StatusNotAcceptable, gin.H{"message": "Timeup for the otp", "success": false})
+		_, err := otpUsersCollection.DeleteOne(context.TODO(), bson.M{"email": newUser.Email})
 
 		if err != nil {
 			log.Fatal("Error while deleteone")
 		}
-		log.Printf("Delete %d due to Timeup", res.DeletedCount)
 		return
 	}
+    hashedPassword, _ := hashPassword(newUser.Password)
 
-	userCollection := db.Client.Database("db1").Collection("users")
+	if newUser.Role=="admin"{
+		adminCollection := db.Client.Database("db1").Collection("admins")
+		adminEntry:=models.NewAdmin(newUser.Name, newUser.Email, hashedPassword, false, "admin")
+	    _, err = adminCollection.InsertOne(context.TODO(), adminEntry)
 
-	hashedPassword, err := hashPassword(newUser.Password)
+		log.Println("Here")
 
-	if err != nil {
-		log.Fatal("err:", err)
-		return
+		if err != nil {
+		    c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
+		    return
+	    }
+
+	} else{  
+		userCollection := db.Client.Database("db1").Collection("users")
+		userEntry:=models.NewUser(newUser.Name, newUser.Email, hashedPassword, false, false,false)
+	    _, err = userCollection.InsertOne(context.TODO(), userEntry)
+
+		if err != nil {
+		    c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
+		    return
+	    }
 	}
 
-	var userEntry models.USER
-	userEntry.Email = newUser.Email
-	userEntry.Name = newUser.Name
-	userEntry.Password = hashedPassword
-	userEntry.IsApproved = false
-	userEntry.CanPredict = false
-	userEntry.CanTrain = false
-	userEntry.Role = "user"
-	_, err = userCollection.InsertOne(context.TODO(), userEntry)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
-		return
-	}
-
-	res, err := otpUsersCollection.DeleteOne(context.TODO(), bson.M{"email": newUser.Email}) //delete the previous otp
-
+	_, err = otpUsersCollection.DeleteOne(context.TODO(), bson.M{"email": newUser.Email}) //delete the previous otp
 	if err != nil {
 		log.Fatal("Error while deleteone")
 	}
-	log.Printf("Delete %d due to Timeup", res.DeletedCount)
 
 	c.JSON(http.StatusAccepted, gin.H{"message": "OTP Matched!, You can Login now"})
 }

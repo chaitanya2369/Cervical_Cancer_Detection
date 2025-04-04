@@ -7,14 +7,15 @@ import (
 )
 
 func RegisterUserRoutes(router *gin.Engine) {
-	adminGroup := router.Group("/user")
+	userGroup := router.Group("/user")
 	{
-		adminGroup.GET("/get-active", handlers.GetActivePatients)
-		adminGroup.GET("/get-Inactive", handlers.GetInActivePatients)
-		adminGroup.POST("/add-patient", handlers.AddNewPatient)
-		adminGroup.POST("/get-patient", handlers.GetPatient)
-		adminGroup.POST("/edit-patient", handlers.EditPatient)
+		userGroup.GET("/get-active", handlers.GetActivePatients)
+		userGroup.GET("/get-Inactive", handlers.GetInActivePatients)
+		userGroup.POST("/add-patient", handlers.AddNewPatient)
+		userGroup.POST("/get-patient", handlers.GetPatient)
+		userGroup.POST("/edit-patient", handlers.EditPatient)
 
-		adminGroup.POST("/predict", handlers.UploadImageForPatientAndPredict)
+		userGroup.POST("/predict", handlers.UploadImageForPatientAndPredict)
+		userGroup.POST("/csv-predit", handlers.CsvFilePredict)
 	}
 }
