@@ -3,12 +3,9 @@ import io
 import json
 
 from flask import Flask, request, jsonify
-import cv2
 import pickle
 import pandas as pd
-import numpy as np
 import sys
-from PIL import Image
 
 app = Flask(__name__)
 
