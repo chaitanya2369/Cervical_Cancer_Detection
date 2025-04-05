@@ -15,10 +15,11 @@ import (
 
 
 func GetUnApprovedUsers(c *gin.Context) {
-	log.Print("GetUnapprovedusers called!!");
+   hospital:=c.Param("hospital")
+
    var UnApprovedUsers []models.USER
    userCollection:=db.Client.Database("db1").Collection("users")
-   cur,err:= userCollection.Find(context.TODO(), gin.H{"isApproved": false})
+   cur,err:= userCollection.Find(context.TODO(), gin.H{"isApproved": false, "hospital": hospital})
 
    if err!=nil{
 	 log.Fatal(err)
@@ -37,9 +38,10 @@ func GetUnApprovedUsers(c *gin.Context) {
 }
 
 func GetApprovedUsers(c *gin.Context){
+	hospital:=c.Param("hospital")
    var approvedUsers []models.USER
    userCollection:=db.Client.Database("db1").Collection("users")
-   cur,err:= userCollection.Find(context.TODO(), gin.H{"isApproved": true})
+   cur,err:= userCollection.Find(context.TODO(), gin.H{"isApproved": true, "hospital": hospital})
 
    if err!=nil{
 	 log.Fatal(err)
@@ -57,26 +59,7 @@ func GetApprovedUsers(c *gin.Context){
    c.JSON(http.StatusAccepted, gin.H{"message": "successful", "users": approvedUsers})
 }
 
-func ApproveUser(c *gin.Context){ //send complete user
-   var user models.USER
-   if err:=c.ShouldBindJSON(&user); err!=nil{
-	 log.Fatal(err)
-	 return
-   }
-   
-   userCollection := db.Client.Database("db1").Collection("users")
-   filter := bson.M{"_id": user.ID}
-   _,err := userCollection.ReplaceOne(context.TODO(), filter, user)
-
-  if err!=nil{
-	log.Fatal(err)
-	return
-  }
-
-  c.JSON(http.StatusAccepted, gin.H{"message": "Approved user and gave permissions"})
-}
-
-func ChangeUserPermission(c *gin.Context){ //send complete user
+func ChangeUserData(c *gin.Context){ //send complete user
   var user models.USER
    if err:=c.ShouldBindJSON(&user); err!=nil{
 	 log.Fatal(err)
@@ -108,7 +91,7 @@ func CreateUser(c *gin.Context) {
 	// Check if user with this email already exists
 	userCollection := db.Client.Database("db1").Collection("users")
 	var existingUser models.USER
-	err := userCollection.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&existingUser)
+	err := userCollection.FindOne(context.TODO(), bson.M{"email": user.Email, "hospital": user.Hospital}).Decode(&existingUser)
 	if err != mongo.ErrNoDocuments { // ErrNoDocuments means no user was found
 		log.Fatal("User already exists with the same email")
 		c.JSON(http.StatusConflict, gin.H{"message": "User already exists"})

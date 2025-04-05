@@ -20,6 +20,7 @@ type USER struct {
 	IsApproved   bool             `bson:"isApproved"`
 	CanPredict   bool             `bson:"canPredict"`
 	CanTrain     bool             `bson:"canTrain"`
+	Hospital   string             `bson:"hospital"`
 }
 
 type ADMIN struct {
@@ -29,6 +30,7 @@ type ADMIN struct {
 	Password   string             `bson:"password"`
 	IsApproved   bool             `bson:"isApproved"`
 	Role       string             `bson:"role"`
+	Hospital   string             `bson:"hospital"`
 }
 
 type OTPuser struct{
@@ -39,7 +41,7 @@ type OTPuser struct{
     ExpiresAt  time.Time          `bson:"expiresAt"`
 }
 
-func NewUser(name, email, hashedPassword string, isApproved, canPredict, canTrain bool) *USER {
+func NewUser(name, email, hashedPassword string, isApproved, canPredict, canTrain bool, hospital string) *USER {
 	return &USER{
 		Name:     name,
 		Email:    email,
@@ -47,15 +49,17 @@ func NewUser(name, email, hashedPassword string, isApproved, canPredict, canTrai
 		IsApproved: isApproved,
 		CanPredict: canPredict,
 		CanTrain: canTrain,
+		Hospital: hospital,
 	}
 }
 
-func NewAdmin(name, email, hashedPassword string, isApproved bool, role string) *ADMIN {
+func NewAdmin(name, email, hashedPassword string, isApproved bool, role, hospital string) *ADMIN {
 	return &ADMIN{
 		Name:     name,
 		Email:    email,
 		Password: hashedPassword,
 		IsApproved: isApproved,
 		Role: role,
+		Hospital: hospital,
 	}
 }

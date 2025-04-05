@@ -36,7 +36,7 @@ def predict():
     df = scaler_af.transform(df)
 
     prediction_af = model_af.predict(df)
- 
+
     return jsonify({"prediction": prediction_af.tolist()})
 
 
