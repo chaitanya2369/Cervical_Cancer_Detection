@@ -15,26 +15,16 @@ const ViewPatient = () => {
   const [currentModel, setCurrentModel] = useState("svm_dic");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalFile, setModalFile] = useState(null);
-
-  const [dicImage, setDicImage] = useState(null);
-  const [afImage, setAfImage] = useState(null);
-  const [dicImageURL, setDicImageURL] = useState(null); //to preview the image
-  const [afImageURL, setAfImageURL] = useState(null); //to preview the image
-  const [currentImage, setCurrentImage] = useState("DIC");
-  // const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalImage, setModalImage] = useState(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false); // New state for preview modal
   const [notes, setNotes] = useState("");
   const [prescription, setPrescription] = useState([]);
   const [newMedicine, setNewMedicine] = useState("");
   const [followUpDate, setFollowUpDate] = useState(null);
   const [followUpTests, setFollowUpTests] = useState([]);
   const [newTest, setNewTest] = useState("");
-  const [activeTab, setActiveTab] = useState("Notes");
+  const [activeTab, setActiveTab] = useState("Diagnosis");
   const [prediction, setPrediction] = useState("NA");
-  const [notCancerPrediction, setNotCancerPreciction] = useState("NA");
-
   const [responseData, setResponseData] = useState([]);
-
   const [showHistory, setShowHistory] = useState(false);
   const [parsedData, setParsedData] = useState(null);
 
@@ -43,33 +33,13 @@ const ViewPatient = () => {
   const [selectedPatientDetails, setSelectedPatientDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [history, setHistory] = useState([]);
-
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
-  };
-
-  const handleFileClick = (file) => {
-    setModalFile(file);
-    toggleModal();
-  };
 
   const handleViewPatient = async (patientID) => {
-    console.log("Patient ID: ", patientID);
     try {
-      const response = await axios.post(
-        "http://localhost:8080/user/get-patient",
-        {
-          ID: patientID,
-        }
-      );
-      console.log("response data:", response.data.patient.Images);
-      setHistory(response.data.patient.Images);
+      const response = await axios.post("http://localhost:8080/user/get-patient", { "ID": patientID });
       setSelectedPatientDetails(response.data.patient);
-      console.log("Response Data:", selectedPatientDetails);
       setResponseData(response.data);
       setLoading(false);
-      console.log(responseData);
     } catch (error) {
       console.error("Error fetching patient details:", error);
       setError("Failed to fetch patient details.");
@@ -81,102 +51,74 @@ const ViewPatient = () => {
     if (patientID) handleViewPatient(patientID);
   }, [patientID]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <div className="text-center py-10">Loading...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
+  if (!selectedPatientDetails) return <div className="text-center py-10">No patient details found</div>;
 
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  if (!selectedPatientDetails) {
-    return <div>No patient details found</div>;
-  }
-
-  const toggleHistory = () => {
-    setShowHistory(!showHistory);
-  };
-
-  const handleTabSwitch = (type) => {
-    setCurrentImage(type);
-  };
-
-  const setImages = async (event, type) => {
+  const handleFileUpload = (event, type) => {
     const file = event.target.files[0];
-    if (type === "DIC") {
-      setDicImage(file);
-      setDicImageURL(URL.createObjectURL(file));
-      console.log("set to dic");
+    if (file && (file.name.endsWith('.csv') || file.name.endsWith('.xlsx'))) {
+      const fileUrl = URL.createObjectURL(file);
+      const setters = {
+        "svm_dic": setSvmDicFile,
+        "logistic_regression_dic": setLogisticDicFile,
+        "svm_af": setSvmAfFile,
+        "logistic_regression_af": setLogisticAfFile,
+      };
+      setters[type](fileUrl);
+
+      if (file.name.endsWith('.csv')) {
+        Papa.parse(file, {
+          complete: (result) => {
+            const jsonData = result.data;
+            setParsedData(jsonData);
+            console.log("Parsed JSON Data:", JSON.stringify(jsonData, null, 2));
+          },
+          header: true,
+          skipEmptyLines: true,
+          error: (error) => console.error("Error parsing CSV:", error),
+        });
+      } else if (file.name.endsWith('.xlsx')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheetName = workbook.SheetNames[0];
+          const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+          setParsedData(jsonData);
+          console.log("Parsed JSON Data:", JSON.stringify({"cells": jsonData}, null, 2));
+        };
+        reader.readAsArrayBuffer(file);
+      }
     } else {
-      setAfImage(file);
-      setAfImageURL(URL.createObjectURL(file));
-      console.log("set to af");
+      alert("Please upload a .csv or .xlsx file.");
     }
   };
 
   const handlePredict = async () => {
-    const file = {
-      svm_dic: svmDicFile,
-      logistic_regression_dic: logisticDicFile,
-      svm_af: svmAfFile,
-      logistic_regression_af: logisticAfFile,
-    }[currentModel];
-
-    if (!file) {
-      alert("Please upload a file before predicting.");
+    const file = { "svm_dic": svmDicFile, "logistic_regression_dic": logisticDicFile, "svm_af": svmAfFile, "logistic_regression_af": logisticAfFile }[currentModel];
+    if (!file || !parsedData) {
+      alert("Please upload a file and ensure it’s parsed before predicting.");
       return;
     }
 
-    // Simulate sending a request to the respective model endpoint
     try {
-      const response = await fetch(`/api/predict/${currentModel}`, {
-        method: "POST",
-        body: JSON.stringify({ fileUrl: file }),
-        headers: { "Content-Type": "application/json" },
-      });
-      const result = await response.json();
-      console.log(`Prediction result from ${currentModel}:`, result);
-      // Handle the prediction result (e.g., update state or display it)
-    } catch (error) {
-      console.error("Error during prediction:", error);
-    }
-  };
-
-  const handleImageUpload = async (type) => {
-    // const file = URL.createObjectURL(event.target.files[0]);
-    const file = type == "DIC" ? dicImage : afImage;
-
-    const formData = new FormData();
-    console.log("p:0" + patientID);
-    formData.append("image", file);
-    formData.append("id", patientID);
-    formData.append("type", type);
-    console.log(formData);
-
-    try {
-      // Send the file to the backend
+      console.log("parsed: ",parsedData)
       const response = await axios.post(
-        `http://localhost:8080/user/predict/${currentModel}`,
-        { id: patientID, type: currentModel, data: parsedData },
-        { headers: { "Content-Type": "application/json" } }
+        `http://192.168.78.154:5000`,
+        parsedData
       );
-      console.log(response.data.prediction);
-      setPrediction((parseFloat(response.data.prediction) * 100).toFixed(2)); // Assume the backend returns a prediction
-      setNotCancerPreciction(
-        (parseFloat(response.data.notCancer) * 100).toFixed(2)
-      ); // Assume the backend returns a prediction
+
+      setPrediction(response.data.prediction);
       setResponseData(response.data);
     } catch (error) {
       console.error("Error during prediction:", error);
     }
   };
 
-  // const toggleModal = () => {
-  //   setIsModalOpen(!isModalOpen);
-  // };
-
-  const handleImageClick = (image) => {
-    setModalImage(image);
+  const toggleModal = () => setIsModalOpen(!isModalOpen);
+  const handleFileClick = (file) => {
+    setModalFile(file);
     toggleModal();
   };
 
@@ -198,245 +140,100 @@ const ViewPatient = () => {
     }
   };
 
-  const removeTest = (test) => {
-    setFollowUpTests(followUpTests.filter((t) => t !== test));
-  };
+  const removeTest = (test) => setFollowUpTests(followUpTests.filter((t) => t !== test));
 
   return (
     <div className="min-h-screen bg-gray-100">
       <DashboardHeader />
-
-      <div className="bg-slate-400 flex justify-between">
-        {/* Patient Info */}
-        <div className="w-1/3 p-4 border-x-2">
-          <ul>
-            <li className="my-1">
-              <b>Patient Id: </b>
-              {selectedPatientDetails.ID}
-            </li>
-            <li className="my-1">
-              <b>Name: </b>
-              {selectedPatientDetails.Name}
-            </li>
-            <li className="my-1">
-              <b>Age: </b>
-              {selectedPatientDetails.Age}
-            </li>
-            <li className="my-1">
-              <b>Contact: </b>
-              {selectedPatientDetails.PhoneNumber}
-            </li>
-            <li className="my-1">
-              <b>Address:</b>
-              {selectedPatientDetails.Address}
-            </li>
-          </ul>
-        </div>
-
-        {/* Consultation Info */}
-        <div className="p-4 w-1/3 border-x-2">
-          <ul>
-            <li className="my-1">
-              <b>Consult Date: </b>
-              {selectedPatientDetails.ConsultDate}
-            </li>
-            <li className="my-1">
-              <b>B.P: </b>
-              {selectedPatientDetails.Vitals.BP}
-            </li>
-            <li className="my-1">
-              <b>Weight: </b>
-              {selectedPatientDetails.Vitals.Weight}
-            </li>
-            <li className="my-1">
-              <b>SPo2: </b>
-              {selectedPatientDetails.Vitals.SPO2}
-            </li>
-          </ul>
-        </div>
-
-        {/* Doctor Info */}
-        <div className="p-4 w-1/3 border-x-2">
-          <ul>
-            <li className="my-1">
-              <b>Doctor Name: </b>
-              {selectedPatientDetails.Doctor.Name}
-            </li>
-            <li className="my-1">
-              <b>Doctor Id: </b>
-              {selectedPatientDetails.Doctor.ID}
-            </li>
-            <li className="my-1">
-              <b>Specialisation: </b>
-              {selectedPatientDetails.Doctor.Specialization}
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Diagnosis Information */}
-      <div className="p-5">
-        <h1 className="font-semibold">Diagnosis Information: </h1>
-        <div className="flex justify-around h-2/3">
-          <div
-            className="flex flex-col justify-between border p-4 bg-slate-500"
-            style={{ width: "450px", height: "450px" }}
-          >
-            <div className="flex mb-4">
-              <button
-                className={`px-4 py-2 ${
-                  currentModel === "svm_dic" ? "bg-blue-200" : ""
-                }`}
-                onClick={() => handleTabSwitch("svm_dic")}
-              >
-                SVM DIC
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  currentModel === "logistic_regression_dic"
-                    ? "bg-blue-200"
-                    : ""
-                }`}
-                onClick={() => handleTabSwitch("logistic_regression_dic")}
-              >
-                Logistic DIC
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  currentModel === "svm_af" ? "bg-blue-200" : ""
-                }`}
-                onClick={() => handleTabSwitch("svm_af")}
-              >
-                SVM AF
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  currentModel === "logistic_regression_af" ? "bg-blue-200" : ""
-                }`}
-                onClick={() => handleTabSwitch("logistic_regression_af")}
-              >
-                Logistic AF
-              </button>
-            </div>
-
-            {/* Display uploaded file */}
-            <div
-              className="p-4 w-auto"
-              style={{ cursor: "pointer", height: "70%" }}
-            >
-              {currentModel === "svm_dic" && svmDicFile ? (
-                <div
-                  onClick={() => handleFileClick(svmDicFile)}
-                  className="text-center"
-                >
-                  Uploaded: {svmDicFile.split("/").pop()}
-                </div>
-              ) : currentModel === "logistic_regression_dic" &&
-                logisticDicFile ? (
-                <div
-                  onClick={() => handleFileClick(logisticDicFile)}
-                  className="text-center"
-                >
-                  Uploaded: {logisticDicFile.split("/").pop()}
-                </div>
-              ) : currentModel === "svm_af" && svmAfFile ? (
-                <div
-                  onClick={() => handleFileClick(svmAfFile)}
-                  className="text-center"
-                >
-                  Uploaded: {svmAfFile.split("/").pop()}
-                </div>
-              ) : currentModel === "logistic_regression_af" &&
-                logisticAfFile ? (
-                <div
-                  onClick={() => handleFileClick(logisticAfFile)}
-                  className="text-center"
-                >
-                  Uploaded: {logisticAfFile.split("/").pop()}
-                </div>
-              ) : (
-                <label
-                  className="block text-center border-2 border-dashed border-gray-300 p-4 cursor-pointer"
-                  onClick={() => document.getElementById("fileUpload").click()}
-                >
-                  Click Here to upload a .csv or .xlsx file
-                </label>
-              )}
-              <input
-                type="file"
-                accept=".csv, .xlsx"
-                onChange={(e) => handleFileUpload(e, currentModel)}
-                className="mt-2 cursor-pointer hidden"
-                id="fileUpload"
-              />
-            </div>
-
-            {/* Predict and Reupload */}
-            <div className="flex justify-between mt-4">
-              <button
-                onClick={handlePredict}
-                className="px-4 py-2 bg-blue-500 text-white"
-              >
-                Predict
-              </button>
-              <button
-                onClick={() => document.getElementById("fileUpload").click()}
-                className="px-4 py-2 bg-blue-500 text-white"
-              >
-                {svmDicFile || logisticDicFile || svmAfFile || logisticAfFile
-                  ? "Reupload File"
-                  : "Upload File"}
-              </button>
-            </div>
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-1/3 p-6 bg-white rounded-lg shadow-xl">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">Patient Details</h2>
+          <div className="mb-6 bg-slate-300 p-3 rounded-xl " >
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Patient Information</h3>
+            <ul className="space-y-2 text-gray-600">
+              <li><span className="font-bold ">ID:</span> {selectedPatientDetails.ID}</li>
+              <li><span className="font-bold">Name:</span> {selectedPatientDetails.Name}</li>
+              <li><span className="font-bold">Age:</span> {selectedPatientDetails.Age}</li>
+              <li><span className="font-bold">Contact:</span> {selectedPatientDetails.PhoneNumber}</li>
+              <li><span className="font-bold">Address:</span> {selectedPatientDetails.Address}</li>
+            </ul>
           </div>
-          {/* Cancer Details */}
-          <div className="ml-8 flex flex-col">
-            <div className="p-3 rounded-sm flex items-center my-2 bg-slate-400 w-full h-1/3">
-              <b>Cancer Percentage: </b>
-              {prediction == "NA"
-                ? prediction
-                : prediction > notCancerPrediction
-                ? prediction + "%"
-                : 100 - notCancerPrediction + "%"}
-            </div>
-            <div className="p-3 rounded-sm flex items-center my-2 bg-slate-400 w-full h-1/3">
-              <b>Model Accuracy: </b>96%
-            </div>
-            <div className="p-3 rounded-sm flex items-center my-2 bg-slate-400 w-full h-1/3">
-              <b>Cancer Stage: </b>1
-            </div>
+          <div className="mb-6 bg-slate-300 p-3 rounded-xl">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Consultation Information</h3>
+            <ul className="space-y-2 text-gray-600">
+              <li><span className="font-bold">Consult Date:</span> {selectedPatientDetails.ConsultDate}</li>
+              <li><span className="font-bold">B.P:</span> {selectedPatientDetails.Vitals?.BP || "N/A"} mmHg</li>
+              <li><span className="font-bold">Weight:</span> {selectedPatientDetails.Vitals?.Weight || "N/A"} Kgs</li>
+              <li><span className="font-bold">SPO2:</span> {selectedPatientDetails.Vitals?.SPO2 || "N/A"} % </li>
+            </ul>
           </div>
+          <div className="mb-6 bg-slate-300 p-3 rounded-xl">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Doctor Information</h3>
+            <ul className="space-y-2 text-gray-600">
+              <li><span className="font-medium">Name:</span> {selectedPatientDetails.Doctor?.Name || "N/A"}</li>
+              <li><span className="font-medium">ID:</span> {selectedPatientDetails.Doctor?.ID || "N/A"}</li>
+              <li><span className="font-medium">Specialization:</span> {selectedPatientDetails.Doctor?.Specialization || "N/A"}</li>
+            </ul>
+          </div>
+        </div>
 
-          {/* Doctor's Section: Tab Switching for Notes, Prescription, Follow-up */}
-          <div className="ml-8 border p-4 w-1/3">
-            <div className="flex mb-4">
-              <button
-                className={`px-4 py-2 ${
-                  activeTab === "Notes" ? "bg-blue-200" : ""
-                }`}
-                onClick={() => setActiveTab("Notes")}
-              >
-                Notes
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  activeTab === "Prescription" ? "bg-blue-200" : ""
-                }`}
-                onClick={() => setActiveTab("Prescription")}
-              >
-                Prescription
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  activeTab === "FollowUp" ? "bg-blue-200" : ""
-                }`}
-                onClick={() => setActiveTab("FollowUp")}
-              >
-                Follow-up
-              </button>
+        {/* Main Content */}
+        <div className="w-2/3 p-6">
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <div className="flex border-b mb-4">
+              {["Diagnosis", "Notes", "Prescription", "FollowUp"].map((tab) => (
+                <button
+                  key={tab}
+                  className={`px-4 py-2 ${activeTab === tab ? "border-b-2 border-blue-500 text-blue-500" : "text-gray-600"}`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
 
-            {/* Conditionally render content based on active tab */}
+            {activeTab === "Diagnosis" && (
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-2">Model Selection</h3>
+                  <div className="flex space-x-2 mb-4">
+                    {["svm_dic", "logistic_regression_dic", "svm_af", "logistic_regression_af"].map((model) => (
+                      <button
+                        key={model}
+                        className={`px-3 py-1 rounded ${currentModel === model ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                        onClick={() => setCurrentModel(model)}
+                      >
+                        {model.replace("_", " ").toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="border-dashed border-2 p-4 text-center">
+                    {svmDicFile && currentModel === "svm_dic" ? (
+                      <p onClick={() => handleFileClick(svmDicFile)} className="cursor-pointer">Uploaded: {svmDicFile.split('/').pop()}</p>
+                    ) : (
+                      <label htmlFor="fileUpload" className="cursor-pointer">Upload .csv/.xlsx</label>
+                    )}
+                    <input
+                      id="fileUpload"
+                      type="file"
+                      accept=".csv, .xlsx"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, currentModel)}
+                    />
+                  </div>
+                  <button onClick={handlePredict} className="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                    Predict
+                  </button>
+                </div>
+                <div className="m-10">
+                  <p><b>Cancer Percentage:</b> {prediction}</p>
+                  <p><b>Model Accuracy:</b> 96%</p>
+                  <p><b>Cancer Stage:</b> 1</p>
+                </div>
+              </div>
+            )}
+
             {activeTab === "Notes" && (
               <textarea
                 value={notes}
@@ -545,61 +342,99 @@ const ViewPatient = () => {
         </div>
       )}
 
-      <div className="px-6">
-        {/* Button to toggle the patient's history */}
-        <button
-          onClick={toggleHistory}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          {showHistory ? "Hide Patient's History" : "View Patient's History"}
-        </button>
+      {/* Preview & Edit Modal */}
+      {isPreviewModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Preview & Edit Details</h2>
 
-        {/* Patient's history section, shown conditionally */}
-        {showHistory &&
-          history.map((item) => (
-            <div className="flex flex-col p-6 items-center">
-              <div className="bg-slate-400 px-12 pr-52 py-12 rounded-2xl mt-4">
-                {/* <p>
-                  <b>Consult Date: </b> 06-08-2024
-                </p>
-                <p>
-                  <b>Diagnosis Information:</b> About the Diagnosis Information
-                  regarding the patient
-                </p>
-                <ul>
-                  <li>
-                    <b>Weight: </b> {responseData.Weight}
-                  </li>
-                  <li>
-                    <b>Height: </b> 172 cm
-                  </li>
-                  <li>
-                    <b>B.P: </b> 110/80 mmHg
-                  </li>
-                </ul> */}
-                <div className="flex mt-4">
-                  <img
-                    src="/images/DICimage.png"
-                    alt="Error Loading Image"
-                    className="h-40 w-40"
-                  />
-                  <div className="ml-4">
-                    <p>
-                      <b>Cancer Percentage:</b> {item.Prediction}
-                    </p>
-                    <p>
-                      <b>Model Used:</b> {item.Type}
-                    </p>
-                    <p>
-                      <b>Date:</b> {item.InsertedAt.split("T")[0]}
-                    </p>
-                  </div>
-                </div>
-              </div>
+            {/* Notes Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Notes</h3>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full h-24 p-2 border rounded"
+                placeholder="Edit notes here..."
+              />
             </div>
-          ))}
-      </div>
-    </>
+
+            {/* Prescription Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Prescription</h3>
+              <div className="flex items-center mb-2">
+                <select
+                  value={newMedicine}
+                  onChange={(e) => setNewMedicine(e.target.value)}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select Medicine</option>
+                  {["Medicine A", "Medicine B", "Medicine C"].map((med) => (
+                    <option key={med} value={med}>{med}</option>
+                  ))}
+                </select>
+                <button onClick={addMedicine} className="ml-2 bg-green-500 text-white px-4 py-2 rounded">
+                  Add
+                </button>
+              </div>
+              <ul className="space-y-2">
+                {prescription.map((med) => (
+                  <li key={med} className="flex justify-between bg-gray-50 p-2 rounded">
+                    {med}
+                    <button onClick={() => removeMedicine(med)} className="text-red-500">Remove</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Follow-up Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Follow-up</h3>
+              <div className="mb-2">
+                <label className="block text-gray-600 mb-1">Follow-up Date</label>
+                <DatePicker
+                  selected={followUpDate}
+                  onChange={(date) => setFollowUpDate(date)}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+              <div className="flex items-center mb-2">
+                <select
+                  value={newTest}
+                  onChange={(e) => setNewTest(e.target.value)}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select Test</option>
+                  {["Blood Test", "MRI", "CT Scan"].map((test) => (
+                    <option key={test} value={test}>{test}</option>
+                  ))}
+                </select>
+                <button onClick={addTest} className="ml-2 bg-green-500 text-white px-4 py-2 rounded">
+                  Add
+                </button>
+              </div>
+              <ul className="space-y-2">
+                {followUpTests.map((test) => (
+                  <li key={test} className="flex justify-between bg-gray-50 p-2 rounded">
+                    {test}
+                    <button onClick={() => removeTest(test)} className="text-red-500">Remove</button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={togglePreviewModal}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Save & Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
