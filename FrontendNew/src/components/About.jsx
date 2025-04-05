@@ -1,37 +1,53 @@
-import Button from './Button';
+import React from 'react';
 
-export default function About() {
+const HospitalInfo = () => {
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto flex flex-col md:flex-row items-center">
-        <div className="md:w-1/2 p-6">
-          <h2 className="text-3xl font-bold mb-4">Welcome to Kim's Icon Multi-Speciality Hospital</h2>
-          <p className="mb-6">
-            Lorem ipsum dolor sit amet consectetur adipiscing elit. Aliquid voluptatibus laboriosam tempore officiis quos praesentium.
+    <div className="bg-gradient-to-r from-light-blue-50 to-white min-h-[400px] flex items-center justify-center m-5 py-14 px-4">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between w-full">
+        
+        <div className="md:w-1/2 text-center md:text-left">
+          <h2 className="text-gray-500 text-2xl font-bold uppercase tracking-wide">About Us</h2>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mt-2">
+            Welcome To Kims Icon <br /> Multi-Speciality Hospital
+          </h1>
+          <p className="mt-4 text-gray-600 text-sm">
+            Lorem ipsum dolor sit amet consectetur adipiscing elit. Necessitatibus, tenetur quis beatae incidunt doloremque corrupti
           </p>
-          <ul className="space-y-4 mb-6">
+          <ul className="mt-6 space-y-2 text-gray-600">
             <li className="flex items-center">
-              <span className="text-teal-500 mr-2">•</span> 15+ Years of Experience
+              <span className="w-3 h-3 bg-teal-400 rounded-full mr-2"></span>
+              15+ years of Experience
             </li>
             <li className="flex items-center">
-              <span className="text-teal-500 mr-2">•</span> 24/7 Hour Service
+              <span className="w-3 h-3 bg-teal-400 rounded-full mr-2"></span>
+              24/7 Hour Medical Service
             </li>
             <li className="flex items-center">
-              <span className="text-teal-500 mr-2">•</span> A Multispeciality Hospital
+              <span className="w-3 h-3 bg-teal-400 rounded-full mr-2"></span>
+              A Multispeciality hospital
             </li>
             <li className="flex items-center">
-              <span className="text-teal-500 mr-2">•</span> A Team of Professionals
+              <span className="w-3 h-3 bg-teal-400 rounded-full mr-2"></span>
+              A team of professionals
             </li>
           </ul>
-          <Button>Book An Appointment</Button>
+          <button className="mt-8 px-6 py-3 bg-teal-400 text-white font-semibold rounded-lg hover:bg-teal-500 transition duration-300">
+            Book An Appointment
+          </button>
         </div>
-        <div className="md:w-1/2 p-6">
-          {/* Placeholder for doctor image */}
-          <div className="bg-gray-300 h-64 rounded-lg flex items-center justify-center">
-            Doctor Image
+        <div className="md:w-1/2 mt-8 md:mt-0 flex justify-center md:justify-end">
+          <div className="relative w-64 h-80">
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-200 to-blue-200 rounded-lg transform -rotate-3"></div>
+            <img
+              src="/images/about-image.png"
+              alt="Doctor"
+              className="pt-4 pb-1 relative z-10 w-full h-full object-cover rounded-lg"
+            />
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
-}
+};
+
+export default HospitalInfo;
