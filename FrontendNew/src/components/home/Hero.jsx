@@ -2,7 +2,7 @@ import Button from "./Button";
 
 export default function Hero() {
   return (
-    <section className=" px-11 flex items-center bg-gradient-to-b from-teal-400 to-teal-600">
+    <section className=" px-11 flex items-center bg-gradient-to-b from-teal-200 to-teal-400">
       <div className="container mx-auto flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 px-11">
           <p className="text-2xl">Welcome to CerviScan</p>
