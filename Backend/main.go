@@ -18,6 +18,7 @@ func main() {
 	s3service.ConnectS3()
 
     routes.RegisterAuthRoutes(r) //auth routes
+	routes.RegisterSuperAdminRoutes(r) //super admin routes
 	routes.RegisterAdminRoutes(r) //admin routes
 	routes.RegisterUserRoutes(r) //user routes
 

@@ -123,6 +123,7 @@ type USER_DETAILS struct {
 	Password string             `bson:"password"`
 	Otp      string             `bson:"otp"`
 	Role     string             `bson:"role"`
+	Hospital string             `bson:"hospital"`
 }
 
 func VerifyOtp(c *gin.Context) {
@@ -159,7 +160,7 @@ func VerifyOtp(c *gin.Context) {
 
 	if newUser.Role=="admin"{
 		adminCollection := db.Client.Database("db1").Collection("admins")
-		adminEntry:=models.NewAdmin(newUser.Name, newUser.Email, hashedPassword, false, "admin")
+		adminEntry:=models.NewAdmin(newUser.Name, newUser.Email, hashedPassword, false, "admin", newUser.Hospital)
 	    _, err = adminCollection.InsertOne(context.TODO(), adminEntry)
 
 		log.Println("Here")
@@ -171,7 +172,7 @@ func VerifyOtp(c *gin.Context) {
 
 	} else{  
 		userCollection := db.Client.Database("db1").Collection("users")
-		userEntry:=models.NewUser(newUser.Name, newUser.Email, hashedPassword, false, false,false)
+		userEntry:=models.NewUser(newUser.Name, newUser.Email, hashedPassword, false, false,false, newUser.Hospital)
 	    _, err = userCollection.InsertOne(context.TODO(), userEntry)
 
 		if err != nil {
