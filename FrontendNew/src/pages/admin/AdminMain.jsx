@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from "react";
-import SideNavBar, {
-  SideBarItem,
-} from "../../components/general.jsx/SideNavBar";
+import SideNavBar, { SideBarItem } from "../../components/general/SideNavBar";
 import { useNavigate } from "react-router-dom";
 import { LayoutDashboard, UserCircle, Settings } from "lucide-react";
 import AdminDashboard from "../../components/admin/AdminDashboard";
 import ViewUsers from "../../components/admin/ViewUsers";
 
 const AdminMain = () => {
-  const [activeItemId, setactiveItemId] = useState("dashboard");
+  const [activeItemId, setactiveItemId] = useState("/admin/dashboard");
   const navigate = useNavigate();
 
   const handleItemClick = (itemId) => {
     setactiveItemId(itemId);
   };
   useEffect(() => {
-    navigate("/" + activeItemId);
+    navigate("/admin/" + activeItemId);
   }, [activeItemId]);
   const items = [
     {

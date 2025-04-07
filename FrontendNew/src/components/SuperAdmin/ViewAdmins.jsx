@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import SearchBar from "../general.jsx/SearchBar";
+import SearchBar from "../general/SearchBar";
 import AdminsTable from "./AdminsTable";
-import Pagination from "../general.jsx/Pagination";
+import Pagination from "../general/Pagination";
 
 const ViewAdmins = () => {
   const [selectedCategory, setSelectedCategory] = useState("Approved");

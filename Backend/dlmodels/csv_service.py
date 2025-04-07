@@ -6,8 +6,10 @@ from flask import Flask, request, jsonify
 import pickle
 import pandas as pd
 import sys
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 features_order = ['Cell Area', 'Cell Aspect Ratio', 'Cell Diameter', 'Nucleus Area', 'Nucleus Aspect Ratio', 'Nucleus Diameter','Cytoplasm Area', 'NC Ratio', 'Cell Perimeter', 'Nuclear Perimeter','Cytoplasm Perimeter', 'MeanGray', 'Median', 'Variance','StandardDeviation', 'Contrast', 'Energy', 'Entropy', 'Homogenity','Correlation', 'AutoCorrelation', 'ClusterProminence', 'ClusterShade','Dissimilarity']
 
@@ -25,7 +27,9 @@ with open("scaler_af.pkl", "rb") as model_file:
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.get_json()
-    df = pd.DataFrame(data['cells'])
+    # print(data)
+    df = pd.DataFrame(data)
+    # print(df)
     df = df[features_order]
 
     df = selector_af.transform(df)

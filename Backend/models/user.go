@@ -1,8 +1,6 @@
 package models
 
 import (
-	"time"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -17,7 +15,7 @@ type USER struct {
 	Name       string             `bson:"name"`
     Email      string             `bson:"email"`
 	Password   string             `bson:"password"`
-	IsApproved   bool             `bson:"isApproved"`
+	Status     string             `bson:"status"`
 	CanPredict   bool             `bson:"canPredict"`
 	CanTrain     bool             `bson:"canTrain"`
 	Hospital   string             `bson:"hospital"`
@@ -28,7 +26,7 @@ type ADMIN struct {
 	Name       string             `bson:"name"`
     Email      string             `bson:"email"`
 	Password   string             `bson:"password"`
-	IsApproved   bool             `bson:"isApproved"`
+	Status     string             `bson:"status"`
 	Role       string             `bson:"role"`
 	Hospital   string             `bson:"hospital"`
 }
@@ -37,28 +35,26 @@ type OTPuser struct{
 	ID         primitive.ObjectID `bson:"_id,omitempty"`
 	Email      string             `bson:"email"`
 	Otp        string             `bson:"otp"`
-	Role       string             `bson:"role"`
-    ExpiresAt  time.Time          `bson:"expiresAt"`
 }
 
-func NewUser(name, email, hashedPassword string, isApproved, canPredict, canTrain bool, hospital string) *USER {
+func NewUser(name, email, hashedPassword , status string, canPredict, canTrain bool, hospital string) *USER {
 	return &USER{
 		Name:     name,
 		Email:    email,
 		Password: hashedPassword,
-		IsApproved: isApproved,
+		Status: status,
 		CanPredict: canPredict,
 		CanTrain: canTrain,
 		Hospital: hospital,
 	}
 }
 
-func NewAdmin(name, email, hashedPassword string, isApproved bool, role, hospital string) *ADMIN {
+func NewAdmin(name, email, hashedPassword , status string, role, hospital string) *ADMIN {
 	return &ADMIN{
 		Name:     name,
 		Email:    email,
 		Password: hashedPassword,
-		IsApproved: isApproved,
+		Status: status,
 		Role: role,
 		Hospital: hospital,
 	}

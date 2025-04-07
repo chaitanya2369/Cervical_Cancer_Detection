@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-import SideNavBar, {
-  SideBarItem,
-} from "../../components/general.jsx/SideNavBar";
+import SideNavBar, { SideBarItem } from "../../components/general/SideNavBar";
 import Dashboard from "../../components/SuperAdmin/Dashboard";
 import { LayoutDashboard, UserCircle, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +13,7 @@ const SuperAdminMain = () => {
     setactiveItemId(itemId);
   };
   useEffect(() => {
-    navigate("/" + activeItemId);
+    navigate("/superadmin/" + activeItemId);
   }, [activeItemId]);
   const items = [
     { id: "dashboard", text: "Dashboard", icon: <LayoutDashboard size={20} /> },
