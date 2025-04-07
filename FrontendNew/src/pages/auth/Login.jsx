@@ -1,32 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import Button from '../components/Button';
-import Cookies from 'js-cookie';
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import Button from "../../components/general/Button";
+import Cookies from "js-cookie";
 
 export default function Login() {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = Cookies.get('jwt-token');
+    const token = Cookies.get("jwt-token");
     if (token) {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
       if (user && user.ID) {
         // Determine dashboard based on user permissions
         if (user.user) {
-          navigate('/admin-dashboard');
+          navigate("/admin-dashboard");
         } else if (user.admin) {
-          navigate('/doctor-dashboard');
+          navigate("/doctor-dashboard");
         }
       } else {
-        Cookies.remove('jwt-token');
-        localStorage.removeItem('user');
+        Cookies.remove("jwt-token");
+        localStorage.removeItem("user");
       }
     }
   }, [navigate]);
@@ -34,7 +34,7 @@ export default function Login() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(''); // Clear error on change
+    setError(""); // Clear error on change
   };
 
   const handleSubmit = async (e) => {
@@ -42,20 +42,20 @@ export default function Login() {
 
     // Basic validation
     if (!formData.email || !formData.password) {
-      setError('Email and password are required.');
+      setError("Email and password are required.");
       return;
     }
 
     if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      setError('Please enter a valid email address.');
+      setError("Please enter a valid email address.");
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:8080/auth/login', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8080/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: formData.email,
@@ -65,25 +65,25 @@ export default function Login() {
 
       const data = await response.json();
 
-      if (data.message === 'Password Matched') {
+      if (data.message === "Password Matched") {
         // Store JWT token in cookie
-        Cookies.set('jwt-token', data['jwt-token'], { expires: 7 }); // Expires in 7 days
+        Cookies.set("jwt-token", data["jwt-token"], { expires: 7 }); // Expires in 7 days
 
         // Store user data in localStorage
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data.user));
 
         // Redirect based on role
         if (data.admin) {
-          navigate('/admin-dashboard');
+          navigate("/admin-dashboard");
         } else if (data.user) {
-          navigate('/doctor-dashboard');
+          navigate("/doctor-dashboard");
         }
       } else {
-        setError(data.message || 'Login failed. Please try again.');
+        setError(data.message || "Login failed. Please try again.");
       }
     } catch (err) {
-      setError('An error occurred. Please check your network and try again.');
-      console.error('Login error:', err);
+      setError("An error occurred. Please check your network and try again.");
+      console.error("Login error:", err);
     }
   };
 
@@ -95,8 +95,10 @@ export default function Login() {
       {/* Header Section */}
       <header className="w-full bg-slate-700 bg-opacity-90 text-white py-4 shadow-md z-10 relative">
         <div className="container mx-auto flex items-center justify-between px-6">
-          <Link to='/'>
-          <h1 className="text-black font-bold text-3xl">Cervi<span className='text-teal-400'>Scan</span></h1>
+          <Link to="/">
+            <h1 className="text-black font-bold text-3xl">
+              Cervi<span className="text-teal-400">Scan</span>
+            </h1>
           </Link>
           <nav>
             <Link to="/signup" className="text-white hover:underline ml-4">
@@ -110,17 +112,33 @@ export default function Login() {
       <div className="flex items-center justify-center py-10 relative z-10">
         <div className="bg-white/30 backdrop-blur-lg rounded-3xl shadow-2xl p-8 w-full max-w-md text-center border border-white/20">
           <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-white flex items-center justify-center shadow-md">
-            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+            <svg
+              className="w-6 h-6 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17 16l4-4m0 0l-4-4m4 4H7"
+              />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-800">Sign in with email</h2>
+          <h2 className="text-xl font-semibold text-gray-800">
+            Sign in with email
+          </h2>
           <p className="text-sm text-gray-600 mt-1 mb-6">
-            Start diagnosing early with intelligent imaging — fast, reliable, and secure.
+            Start diagnosing early with intelligent imaging — fast, reliable,
+            and secure.
           </p>
           <form onSubmit={handleSubmit} className="space-y-4 text-left">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Email
               </label>
               <div className="relative">
@@ -135,7 +153,12 @@ export default function Login() {
                   className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -148,12 +171,15 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Password
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   id="password"
                   value={formData.password}
@@ -163,7 +189,12 @@ export default function Login() {
                   className="w-full px-3 py-2 pl-10 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -179,7 +210,12 @@ export default function Login() {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                 >
                   {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -188,7 +224,12 @@ export default function Login() {
                       />
                     </svg>
                   ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -206,18 +247,24 @@ export default function Login() {
                 </button>
               </div>
               <div className="text-right mt-1">
-                <Link to="/forgot-password" className="text-sm text-blue-500 hover:underline">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-blue-500 hover:underline"
+                >
                   Forgot password?
                 </Link>
               </div>
             </div>
 
-            <Button type="submit" className="w-full bg-black text-white hover:bg-gray-900">
+            <Button
+              type="submit"
+              className="w-full bg-black text-white hover:bg-gray-900"
+            >
               Get Started
             </Button>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             <p className="text-sm text-gray-600 mt-4 text-center">
-              Don’t have an account?{' '}
+              Don’t have an account?{" "}
               <Link to="/signup" className="text-blue-500 hover:underline">
                 Sign up
               </Link>

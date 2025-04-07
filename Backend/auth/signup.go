@@ -55,8 +55,19 @@ func hashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
+type USER_DETAILS struct {
+	ID       primitive.ObjectID `bson:"_id,omitempty"`
+	Name     string             `bson:"name"`
+	Email    string             `bson:"email"`
+	Password string              `bson:"password"`
+	Otp      string             `bson:"otp"`
+	Role     string             `bson:"role"`
+	Hospital string             `bson:"hospital"`
+	ExpiresAt  time.Time          `bson:"expiresAt"`
+}
+
 func SignUp(c *gin.Context) {
-	var otpUser models.OTPuser //You only need email and role
+	var otpUser USER_DETAILS //You only need email and role
 
 	if err := c.ShouldBindJSON(&otpUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "success": false})
@@ -116,38 +127,30 @@ func SignUp(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{"message": "Yay! OTP generated check it", "success": true})
 }
 
-type USER_DETAILS struct {
-	ID       primitive.ObjectID `bson:"_id,omitempty"`
-	Name     string             `bson:"name"`
-	Email    string             `bson:"email"`
-	Password string             `bson:"password"`
-	Otp      string             `bson:"otp"`
-	Role     string             `bson:"role"`
-	Hospital string             `bson:"hospital"`
-}
+
 
 func VerifyOtp(c *gin.Context) {
-	var newUser USER_DETAILS
-	if err := c.ShouldBindJSON(&newUser); err != nil {
+	var otpUser models.OTPuser
+	if err := c.ShouldBindJSON(&otpUser); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "success": false})
 		return
 	}
 
 	otpUsersCollection := db.Client.Database("db1").Collection("otpUsers")
-	var tempUser models.OTPuser
-	err := otpUsersCollection.FindOne(context.TODO(), gin.H{"email": newUser.Email}).Decode(&tempUser)
+	var newUser USER_DETAILS
+	err := otpUsersCollection.FindOne(context.TODO(), gin.H{"email": otpUser.Email}).Decode(&newUser)
 
 	if err != nil {
 		c.JSON(http.StatusConflict, gin.H{"message": "Generate otp first", "success": false})
 		return
 	}
 
-	if tempUser.Otp != newUser.Otp {
+	if newUser.Otp != otpUser.Otp {
 		c.JSON(http.StatusNotAcceptable, gin.H{"message": "OTP not matched", "success": false})
 		return
 	}
 
-	if time.Now().After(tempUser.ExpiresAt) {
+	if time.Now().After(newUser.ExpiresAt) {
 		c.JSON(http.StatusNotAcceptable, gin.H{"message": "Timeup for the otp", "success": false})
 		_, err := otpUsersCollection.DeleteOne(context.TODO(), bson.M{"email": newUser.Email})
 
@@ -160,7 +163,7 @@ func VerifyOtp(c *gin.Context) {
 
 	if newUser.Role=="admin"{
 		adminCollection := db.Client.Database("db1").Collection("admins")
-		adminEntry:=models.NewAdmin(newUser.Name, newUser.Email, hashedPassword, false, "admin", newUser.Hospital)
+		adminEntry:=models.NewAdmin(newUser.Name, newUser.Email, hashedPassword, "pending", "admin", newUser.Hospital)
 	    _, err = adminCollection.InsertOne(context.TODO(), adminEntry)
 
 		log.Println("Here")
@@ -172,7 +175,7 @@ func VerifyOtp(c *gin.Context) {
 
 	} else{  
 		userCollection := db.Client.Database("db1").Collection("users")
-		userEntry:=models.NewUser(newUser.Name, newUser.Email, hashedPassword, false, false,false, newUser.Hospital)
+		userEntry:=models.NewUser(newUser.Name, newUser.Email, hashedPassword, "pending", false,false, newUser.Hospital)
 	    _, err = userCollection.InsertOne(context.TODO(), userEntry)
 
 		if err != nil {
@@ -181,7 +184,7 @@ func VerifyOtp(c *gin.Context) {
 	    }
 	}
 
-	_, err = otpUsersCollection.DeleteOne(context.TODO(), bson.M{"email": newUser.Email}) //delete the previous otp
+	_, err = otpUsersCollection.DeleteOne(context.TODO(), bson.M{"email": newUser.Email}) //delete the otp
 	if err != nil {
 		log.Fatal("Error while deleteone")
 	}

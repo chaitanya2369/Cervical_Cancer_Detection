@@ -42,7 +42,7 @@ func HandleLogin(c *gin.Context){
 	      return
       }
 
-      c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token, "user": tempUser})
+      c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token, "user": tempUser, "role": "user"})
       return
    }
 
@@ -57,7 +57,7 @@ func HandleLogin(c *gin.Context){
 	      return
       }
 
-      c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token, "admin": tempAdmin})
+      c.JSON(http.StatusAccepted, gin.H{"message": "Password Matched", "jwt-token": token, "admin": tempAdmin, "role": "admin"})
       return
    }
 
