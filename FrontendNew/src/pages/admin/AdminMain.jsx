@@ -6,7 +6,7 @@ import AdminDashboard from "../../components/admin/AdminDashboard";
 import ViewUsers from "../../components/admin/ViewUsers";
 
 const AdminMain = () => {
-  const [activeItemId, setactiveItemId] = useState("/admin/dashboard");
+  const [activeItemId, setactiveItemId] = useState("dashboard");
   const navigate = useNavigate();
 
   const handleItemClick = (itemId) => {

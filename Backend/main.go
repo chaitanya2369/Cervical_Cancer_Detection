@@ -3,7 +3,7 @@ package main
 import (
 	"Cervical_Cancer_Detection/db"
 	"Cervical_Cancer_Detection/routes"
-	s3service "Cervical_Cancer_Detection/s3Service"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -12,10 +12,17 @@ import (
 
 func main() {
 	r := gin.Default()
-    r.Use(cors.Default())
+    r.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:5173"},
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge: 12 * time.Hour,
+    }))
 	
 	db.ConnectDb() //connect db
-	s3service.ConnectS3()
+	// s3service.ConnectS3()
 
     routes.RegisterAuthRoutes(r) //auth routes
 	routes.RegisterSuperAdminRoutes(r) //super admin routes

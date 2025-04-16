@@ -12,6 +12,7 @@ import SuperAdminMain from "./pages/superAdmin/SuperAdminMain";
 import AdminMain from "./pages/admin/AdminMain";
 import UserMain from "./pages/user/UserMain";
 import Otp from "./pages/auth/Otp";
+import { AuthProvider } from "./context/auth";
 
 const App = () => {
   const router = createBrowserRouter([
@@ -44,7 +45,11 @@ const App = () => {
       element: <UserMain />,
     },
   ]);
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 };
 
 export default App;

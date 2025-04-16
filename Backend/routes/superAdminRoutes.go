@@ -9,9 +9,9 @@ import (
 func RegisterSuperAdminRoutes(router *gin.Engine) {
    SuperAdminGroup := router.Group("/super-admin")
    {
-	 SuperAdminGroup.GET("/pending-admins", handlers.GetUnApprovedAdmins)
-	 SuperAdminGroup.GET("/approved-admins", handlers.GetApprovedAdmins)
-	 SuperAdminGroup.PUT("/edit-admin",  handlers.ChangeAdminData)
-	 SuperAdminGroup.POST("/add-admin",handlers.CreateAdmin)
+	 SuperAdminGroup.GET("/admins", handlers.GetSelectedFilterAdmins)
+	 SuperAdminGroup.POST("/add-admin",handlers.CreateAdmin) 
+	 SuperAdminGroup.PUT("/edit-admin/:id",  handlers.ChangeAdminData)
+	 SuperAdminGroup.DELETE("/remove-admin/:id", handlers.RemoveAdmin)
    }
 }

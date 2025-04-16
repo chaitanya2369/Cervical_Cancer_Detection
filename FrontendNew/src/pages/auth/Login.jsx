@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Button from "../../components/general/Button";
 import Cookies from "js-cookie";
+import { useAuth } from "../../context/auth";
 
 export default function Login() {
+  const { auth, setAuth, login, logout } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -13,23 +15,23 @@ export default function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = Cookies.get("jwt-token");
-    if (token) {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      if (user && user.ID) {
-        // Determine dashboard based on user permissions
-        if (user.user) {
-          navigate("/admin-dashboard");
-        } else if (user.admin) {
-          navigate("/doctor-dashboard");
-        }
-      } else {
-        Cookies.remove("jwt-token");
-        localStorage.removeItem("user");
-      }
-    }
-  }, [navigate]);
+  // useEffect(() => {
+  //   const token = Cookies.get("jwt-token");
+  //   if (token) {
+  //     const user = JSON.parse(localStorage.getItem("user") || "{}");
+  //     if (user && user.ID) {
+  //       // Determine dashboard based on user permissions
+  //       if (user.user) {
+  //         navigate("/admin-dashboard");
+  //       } else if (user.admin) {
+  //         navigate("/doctor-dashboard");
+  //       }
+  //     } else {
+  //       Cookies.remove("jwt-token");
+  //       localStorage.removeItem("user");
+  //     }
+  //   }
+  // }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -65,18 +67,13 @@ export default function Login() {
 
       const data = await response.json();
 
-      if (data.message === "Password Matched") {
-        // Store JWT token in cookie
-        Cookies.set("jwt-token", data["jwt-token"], { expires: 7 }); // Expires in 7 days
-
-        // Store user data in localStorage
-        localStorage.setItem("user", JSON.stringify(data.user));
-
+      if (data.success) {
+        login(data.token, data.role); //store in auth context
         // Redirect based on role
-        if (data.admin) {
-          navigate("/admin-dashboard");
+        if (data.role == "admin") {
+          navigate("/admin/dashboard");
         } else if (data.user) {
-          navigate("/doctor-dashboard");
+          navigate("/user/dashboard");
         }
       } else {
         setError(data.message || "Login failed. Please try again.");

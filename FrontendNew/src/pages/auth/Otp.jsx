@@ -9,7 +9,7 @@ export default function Otp() {
   const [timeLeft, setTimeLeft] = useState(30);
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || "";
+  const email = location.state || "";
 
   useEffect(() => {
     if (timeLeft > 0 && resendDisabled) {
@@ -30,7 +30,7 @@ export default function Otp() {
       newOtp[index] = value;
       setOtp(newOtp);
 
-      if (value && index < 4) {
+      if (value && index < 5) {
         document.getElementById(`otp-${index + 1}`).focus();
       }
     }
