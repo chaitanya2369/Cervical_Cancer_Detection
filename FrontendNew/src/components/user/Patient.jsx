@@ -5,6 +5,7 @@ import { useLocation } from "react-router-dom";
 import axios from "axios";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
+import PatientDetails from "./PatientDetails";
 
 const Patient = () => {
   const [svmDicFile, setSvmDicFile] = useState(null);
@@ -14,7 +15,7 @@ const Patient = () => {
   const [currentModel, setCurrentModel] = useState("svm_dic");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalFile, setModalFile] = useState(null);
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false); // New state for preview modal
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [prescription, setPrescription] = useState([]);
   const [newMedicine, setNewMedicine] = useState("");
@@ -29,9 +30,6 @@ const Patient = () => {
 
   const location = useLocation();
   const patientID = location.state?.patientID;
-  const [selectedPatientDetails, setSelectedPatientDetails] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const handleFileUpload = (event, type) => {
     const file = event.target.files[0];
@@ -48,9 +46,8 @@ const Patient = () => {
       if (file.name.endsWith(".csv")) {
         Papa.parse(file, {
           complete: (result) => {
-            const jsonData = result.data;
-            setParsedData(jsonData);
-            console.log("Parsed JSON Data:", JSON.stringify(jsonData, null, 2));
+            setParsedData(result.data);
+            console.log("Parsed JSON Data:", JSON.stringify(result.data, null, 2));
           },
           header: true,
           skipEmptyLines: true,
@@ -64,10 +61,7 @@ const Patient = () => {
           const sheetName = workbook.SheetNames[0];
           const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
           setParsedData(jsonData);
-          console.log(
-            "Parsed JSON Data:",
-            JSON.stringify({ cells: jsonData }, null, 2)
-          );
+          console.log("Parsed JSON Data:", JSON.stringify(jsonData, null, 2));
         };
         reader.readAsArrayBuffer(file);
       }
@@ -83,16 +77,15 @@ const Patient = () => {
     }
 
     try {
-      console.log("parsed: ", parsedData);
       const response = await axios.post(
         `http://127.0.0.1:5000/predict`,
         parsedData
       );
-
-      setPrediction(response.data.prediction);
+      setPrediction(response.data.prediction || "NA");
       setResponseData(response.data);
     } catch (error) {
       console.error("Error during prediction:", error);
+      setPrediction("Error");
     }
   };
 
@@ -124,115 +117,124 @@ const Patient = () => {
   const removeTest = (test) =>
     setFollowUpTests(followUpTests.filter((t) => t !== test));
 
-  const PatientDetails = () => {
-    return <div>Patient Details</div>;
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      <h1>Patient Details</h1>
-      <div>
-        <PatientDetails />
-        {/* Main Content */}
-        <div className="w-2/3 p-6">
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <div className="flex border-b mb-4">
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Patient Details Section */}
+        <div className="mb-6">
+          <PatientDetails />
+        </div>
+
+        {/* Main Content Section */}
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="border-b mb-6">
+            <div className="flex space-x-6">
               {["Diagnosis", "Notes", "Prescription", "FollowUp"].map((tab) => (
                 <button
                   key={tab}
-                  className={`px-4 py-2 ${
+                  className={`px-4 py-2 font-medium ${
                     activeTab === tab
-                      ? "border-b-2 border-blue-500 text-blue-500"
-                      : "text-gray-600"
-                  }`}
+                      ? "border-b-2 border-teal-500 text-teal-600"
+                      : "text-gray-600 hover:text-gray-800"
+                  } transition-colors`}
                   onClick={() => setActiveTab(tab)}
                 >
                   {tab}
                 </button>
               ))}
             </div>
+          </div>
 
-            {activeTab === "Diagnosis" && (
-              <div className="grid grid-cols-2 gap-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-2">Model Selection</h3>
-                  <div className="flex space-x-2 mb-4">
-                    {[
-                      "svm_dic",
-                      "logistic_regression_dic",
-                      "svm_af",
-                      "logistic_regression_af",
-                    ].map((model) => (
-                      <button
-                        key={model}
-                        className={`px-3 py-1 rounded ${
-                          currentModel === model
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-200"
-                        }`}
-                        onClick={() => setCurrentModel(model)}
-                      >
-                        {model.replace("_", " ").toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="border-dashed border-2 p-4 text-center">
-                    {svmDicFile && currentModel === "svm_dic" ? (
-                      <p
-                        onClick={() => handleFileClick(svmDicFile)}
-                        className="cursor-pointer"
-                      >
-                        Uploaded: {svmDicFile.split("/").pop()}
-                      </p>
-                    ) : (
-                      <label htmlFor="fileUpload" className="cursor-pointer">
-                        Upload .csv/.xlsx
-                      </label>
-                    )}
-                    <input
-                      id="fileUpload"
-                      type="file"
-                      accept=".csv, .xlsx"
-                      className="hidden"
-                      onChange={(e) => handleFileUpload(e, currentModel)}
-                    />
-                  </div>
-                  <button
-                    onClick={handlePredict}
-                    className="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-                  >
-                    Predict
-                  </button>
+          {activeTab === "Diagnosis" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                  Model Selection
+                </h3>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {[
+                    "svm_dic",
+                    "logistic_regression_dic",
+                    "svm_af",
+                    "logistic_regression_af",
+                  ].map((model) => (
+                    <button
+                      key={model}
+                      className={`px-3 py-1 rounded text-sm font-medium ${
+                        currentModel === model
+                          ? "bg-teal-500 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      } transition-colors`}
+                      onClick={() => setCurrentModel(model)}
+                    >
+                      {model.replace("_", " ").toUpperCase()}
+                    </button>
+                  ))}
                 </div>
-                <div className="m-10 ml-52">
-                  <p>
-                    <b>Cancer Percentage:</b> {prediction}
+                <div className="border-2 border-dashed border-gray-300 p-4 rounded-lg text-center">
+                  {svmDicFile && currentModel === "svm_dic" ? (
+                    <p
+                      onClick={() => handleFileClick(svmDicFile)}
+                      className="text-teal-600 cursor-pointer hover:underline"
+                    >
+                      Uploaded: {svmDicFile.split("/").pop()}
+                    </p>
+                  ) : (
+                    <label
+                      htmlFor="fileUpload"
+                      className="text-teal-600 cursor-pointer hover:underline"
+                    >
+                      Upload .csv/.xlsx
+                    </label>
+                  )}
+                  <input
+                    id="fileUpload"
+                    type="file"
+                    accept=".csv, .xlsx"
+                    className="hidden"
+                    onChange={(e) => handleFileUpload(e, currentModel)}
+                  />
+                </div>
+                <button
+                  onClick={handlePredict}
+                  className="mt-4 w-full bg-teal-500 text-white py-2 rounded-lg hover:bg-teal-600 transition-colors"
+                >
+                  Predict
+                </button>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg shadow-sm flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-lg font-semibold text-gray-700">
+                    <span className="text-teal-600">Cancer Percentage:</span>{" "}
+                    {prediction}%
                   </p>
-                  <p>
-                    <b>Model Accuracy:</b> 96%
+                  <p className="text-md text-gray-600">
+                    <span className="font-medium">Model Accuracy:</span> 96%
                   </p>
-                  <p>
-                    <b>Cancer Stage:</b> 1
+                  <p className="text-md text-gray-600">
+                    <span className="font-medium">Cancer Stage:</span> 1
                   </p>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === "Notes" && (
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full h-40 p-2 border rounded"
-                placeholder="Add notes here..."
-              />
-            )}
+          {activeTab === "Notes" && (
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full h-48 p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              placeholder="Add notes here..."
+            />
+          )}
 
-            {activeTab === "Prescription" && (
-              <div>
+          {activeTab === "Prescription" && (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
                 <select
                   value={newMedicine}
                   onChange={(e) => setNewMedicine(e.target.value)}
-                  className="w-full p-2 border rounded mb-2"
+                  className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 >
                   <option value="">Select Medicine</option>
                   {["Medicine A", "Medicine B", "Medicine C"].map((med) => (
@@ -243,40 +245,47 @@ const Patient = () => {
                 </select>
                 <button
                   onClick={addMedicine}
-                  className="bg-green-500 text-white px-4 py-2 rounded"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                 >
                   Add
                 </button>
-                <ul className="mt-2 space-y-2">
-                  {prescription.map((med) => (
-                    <li
-                      key={med}
-                      className="flex justify-between bg-gray-50 p-2 rounded"
-                    >
-                      {med}
-                      <button
-                        onClick={() => removeMedicine(med)}
-                        className="text-red-500"
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
               </div>
-            )}
+              <ul className="space-y-2">
+                {prescription.map((med) => (
+                  <li
+                    key={med}
+                    className="flex justify-between items-center bg-gray-50 p-3 rounded-lg shadow-sm"
+                  >
+                    <span className="text-gray-700">{med}</span>
+                    <button
+                      onClick={() => removeMedicine(med)}
+                      className="text-red-500 hover:text-red-700 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-            {activeTab === "FollowUp" && (
-              <div>
+          {activeTab === "FollowUp" && (
+            <div className="space-y-4">
+              <div className="mb-2">
+                <label className="block text-gray-700 font-medium mb-1">
+                  Follow-up Date
+                </label>
                 <DatePicker
                   selected={followUpDate}
                   onChange={(date) => setFollowUpDate(date)}
-                  className="w-full p-2 border rounded mb-2"
+                  className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 />
+              </div>
+              <div className="flex items-center space-x-2">
                 <select
                   value={newTest}
                   onChange={(e) => setNewTest(e.target.value)}
-                  className="w-full p-2 border rounded mb-2"
+                  className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 >
                   <option value="">Select Test</option>
                   {["Blood Test", "MRI", "CT Scan"].map((test) => (
@@ -287,59 +296,65 @@ const Patient = () => {
                 </select>
                 <button
                   onClick={addTest}
-                  className="bg-green-500 text-white px-4 py-2 rounded"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                 >
                   Add
                 </button>
-                <ul className="mt-2 space-y-2">
-                  {followUpTests.map((test) => (
-                    <li
-                      key={test}
-                      className="flex justify-between bg-gray-50 p-2 rounded"
-                    >
-                      {test}
-                      <button
-                        onClick={() => removeTest(test)}
-                        className="text-red-500"
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
               </div>
-            )}
+              <ul className="space-y-2">
+                {followUpTests.map((test) => (
+                  <li
+                    key={test}
+                    className="flex justify-between items-center bg-gray-50 p-3 rounded-lg shadow-sm"
+                  >
+                    <span className="text-gray-700">{test}</span>
+                    <button
+                      onClick={() => removeTest(test)}
+                      className="text-red-500 hover:text-red-700 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="mt-6 flex space-x-4">
+            <button
+              onClick={togglePreviewModal}
+              className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
+            >
+              Preview & Edit Details
+            </button>
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors"
+            >
+              {showHistory ? "Hide History" : "View History"}
+            </button>
           </div>
 
-          {/* Preview & Edit Button */}
-          <button
-            onClick={togglePreviewModal}
-            className="mt-4 bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
-          >
-            Preview & Edit Details
-          </button>
-
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className="mt-4 ml-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            {showHistory ? "Hide History" : "View History"}
-          </button>
+          {/* Patient History */}
           {showHistory && (
-            <div className="mt-4 bg-white shadow-md rounded-lg p-6">
-              <h3 className="font-semibold mb-2">Patient History</h3>
-              <div className="bg-gray-50 p-4 rounded">
+            <div className="mt-6 bg-gray-50 p-4 rounded-lg shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                Patient History
+              </h3>
+              <div className="space-y-2 text-gray-600">
                 <p>
-                  <b>Consult Date:</b> 06-08-2024
+                  <span className="font-medium">Consult Date:</span> 06-08-2024
                 </p>
                 <p>
-                  <b>Diagnosis:</b> About the diagnosis information...
+                  <span className="font-medium">Diagnosis:</span> About the
+                  diagnosis information...
                 </p>
                 <p>
-                  <b>Cancer Percentage:</b> 15%
+                  <span className="font-medium">Cancer Percentage:</span> 15%
                 </p>
                 <p>
-                  <b>Model Used:</b> SVM DIC
+                  <span className="font-medium">Model Used:</span> SVM DIC
                 </p>
               </div>
             </div>
@@ -349,17 +364,20 @@ const Patient = () => {
 
       {/* File Preview Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg max-w-lg">
-            <p>File: {modalFile?.split("/").pop()}</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-lg shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">
+              File Preview
+            </h3>
+            <p className="mb-2">File: {modalFile?.split("/").pop()}</p>
             {parsedData && (
-              <pre className="mt-2 max-h-60 overflow-auto">
+              <pre className="mt-2 max-h-60 overflow-auto bg-gray-50 p-4 rounded">
                 {JSON.stringify(parsedData, null, 2)}
               </pre>
             )}
             <button
               onClick={toggleModal}
-              className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+              className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
             >
               Close
             </button>
@@ -370,20 +388,18 @@ const Patient = () => {
       {/* Preview & Edit Modal */}
       {isPreviewModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">
+          <div className="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-lg">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
               Preview & Edit Details
             </h2>
 
             {/* Notes Section */}
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                Notes
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Notes</h3>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full h-24 p-2 border rounded"
+                className="w-full h-32 p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 placeholder="Edit notes here..."
               />
             </div>
@@ -393,11 +409,11 @@ const Patient = () => {
               <h3 className="text-lg font-semibold text-gray-700 mb-2">
                 Prescription
               </h3>
-              <div className="flex items-center mb-2">
+              <div className="flex items-center space-x-2 mb-2">
                 <select
                   value={newMedicine}
                   onChange={(e) => setNewMedicine(e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 >
                   <option value="">Select Medicine</option>
                   {["Medicine A", "Medicine B", "Medicine C"].map((med) => (
@@ -408,7 +424,7 @@ const Patient = () => {
                 </select>
                 <button
                   onClick={addMedicine}
-                  className="ml-2 bg-green-500 text-white px-4 py-2 rounded"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                 >
                   Add
                 </button>
@@ -417,12 +433,12 @@ const Patient = () => {
                 {prescription.map((med) => (
                   <li
                     key={med}
-                    className="flex justify-between bg-gray-50 p-2 rounded"
+                    className="flex justify-between items-center bg-gray-50 p-3 rounded-lg shadow-sm"
                   >
-                    {med}
+                    <span className="text-gray-700">{med}</span>
                     <button
                       onClick={() => removeMedicine(med)}
-                      className="text-red-500"
+                      className="text-red-500 hover:text-red-700 transition-colors"
                     >
                       Remove
                     </button>
@@ -437,20 +453,20 @@ const Patient = () => {
                 Follow-up
               </h3>
               <div className="mb-2">
-                <label className="block text-gray-600 mb-1">
+                <label className="block text-gray-700 font-medium mb-1">
                   Follow-up Date
                 </label>
                 <DatePicker
                   selected={followUpDate}
                   onChange={(date) => setFollowUpDate(date)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 />
               </div>
-              <div className="flex items-center mb-2">
+              <div className="flex items-center space-x-2">
                 <select
                   value={newTest}
                   onChange={(e) => setNewTest(e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 >
                   <option value="">Select Test</option>
                   {["Blood Test", "MRI", "CT Scan"].map((test) => (
@@ -461,7 +477,7 @@ const Patient = () => {
                 </select>
                 <button
                   onClick={addTest}
-                  className="ml-2 bg-green-500 text-white px-4 py-2 rounded"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                 >
                   Add
                 </button>
@@ -470,12 +486,12 @@ const Patient = () => {
                 {followUpTests.map((test) => (
                   <li
                     key={test}
-                    className="flex justify-between bg-gray-50 p-2 rounded"
+                    className="flex justify-between items-center bg-gray-50 p-3 rounded-lg shadow-sm"
                   >
-                    {test}
+                    <span className="text-gray-700">{test}</span>
                     <button
                       onClick={() => removeTest(test)}
-                      className="text-red-500"
+                      className="text-red-500 hover:text-red-700 transition-colors"
                     >
                       Remove
                     </button>
@@ -487,7 +503,7 @@ const Patient = () => {
             <div className="flex justify-end">
               <button
                 onClick={togglePreviewModal}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors"
               >
                 Save & Close
               </button>

@@ -10,7 +10,6 @@ export default function Otp() {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state || "";
-
   useEffect(() => {
     if (timeLeft > 0 && resendDisabled) {
       const timer = setInterval(() => {
