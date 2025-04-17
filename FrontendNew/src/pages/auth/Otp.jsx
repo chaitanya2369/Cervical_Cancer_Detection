@@ -29,7 +29,7 @@ export default function Otp() {
       newOtp[index] = value;
       setOtp(newOtp);
 
-      if (value && index < 5) { 
+      if (value && index < 5) {
         document.getElementById(`otp-${index + 1}`).focus();
       }
     }
@@ -130,7 +130,9 @@ export default function Otp() {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-800">Verify Your Email</h2>
+          <h2 className="text-xl font-semibold text-gray-800">
+            Verify Your Email
+          </h2>
           <p className="text-sm text-gray-600 mt-1 mb-6">
             Enter the 6-digit code sent to {email || "your email"}.
           </p>

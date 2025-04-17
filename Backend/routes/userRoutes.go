@@ -9,13 +9,13 @@ import (
 func RegisterUserRoutes(router *gin.Engine) {
 	userGroup := router.Group("/user")
 	{
-		userGroup.GET("/get-active", handlers.GetActivePatients)
-		userGroup.GET("/get-Inactive", handlers.GetInActivePatients)
-		userGroup.POST("/add-patient", handlers.AddNewPatient)
-		userGroup.POST("/get-patient", handlers.GetPatient)
-		userGroup.POST("/edit-patient", handlers.EditPatient)
+		userGroup.GET("/patients", handlers.GetSelectedFilterPatients) 
+	    userGroup.PUT("/edit-patient",  handlers.EditPatient)
+	    userGroup.POST("/add-patient", handlers.AddNewPatient)
+	    userGroup.DELETE("/remove-patient/:id", handlers.RemovePatient)
+		userGroup.GET("/get-patient/:id", handlers.GetPatientById)
 
-		userGroup.POST("/predict", handlers.UploadImageForPatientAndPredict)
-		userGroup.POST("/csv-predit", handlers.CsvFilePredict)
+		// userGroup.POST("/predict", handlers.UploadImageForPatientAndPredict)
+		// userGroup.POST("/csv-predict", handlers.CsvFilePredict) // corrected the spelling of "predit"
 	}
 }

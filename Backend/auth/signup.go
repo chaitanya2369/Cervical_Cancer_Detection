@@ -45,7 +45,7 @@ func sendOtp(otp string, email string) error {
 	return d.DialAndSend(m)
 }
 
-func hashPassword(password string) (string, error) {
+func HashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	if err != nil {
@@ -79,6 +79,8 @@ func SignUp(c *gin.Context) {
 		return
 	}
     
+    otpUser.Password, _ = HashPassword(otpUser.Password) //hash the password
+
 	if otpUser.Role=="user"{
 		var tempUser models.USER
 	    userCollection := db.Client.Database("db1").Collection("users")
@@ -127,7 +129,26 @@ func SignUp(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{"message": "Yay! OTP generated check it", "success": true})
 }
 
+func createFieldsForHospital(hospital string) error {
+	var field models.PatientFields
+	field.Hospital = hospital
+	field.Fields = []string{}
 
+	fieldCollection := db.Client.Database("db1").Collection("fields")
+
+	var existingField models.PatientFields
+	err := fieldCollection.FindOne(context.TODO(), bson.M{"hospital": hospital}).Decode(&existingField)
+	if err == nil {
+		return nil
+	}
+
+	_, err = fieldCollection.InsertOne(context.TODO(), field)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func VerifyOtp(c *gin.Context) {
 	var otpUser models.OTPuser
@@ -159,14 +180,18 @@ func VerifyOtp(c *gin.Context) {
 		}
 		return
 	}
-    hashedPassword, _ := hashPassword(newUser.Password)
 
 	if newUser.Role=="admin"{
 		adminCollection := db.Client.Database("db1").Collection("admins")
-		adminEntry:=models.NewAdmin(newUser.Name, newUser.Email, hashedPassword, "pending", "admin", newUser.Hospital)
+		adminEntry:=models.NewAdmin(newUser.Name, newUser.Email, newUser.Password, "pending", "admin", newUser.Hospital)
 	    _, err = adminCollection.InsertOne(context.TODO(), adminEntry)
+		 if err != nil {
+		    c.JSON(http.StatusInternalServerError, gin.H{"success": false,"message": "Internal Server Error"})
+		    return
+	    }
 
-		log.Println("Here")
+		//create a fields entry for this hospital
+		err = createFieldsForHospital(newUser.Hospital)
 
 		if err != nil {
 		    c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
@@ -175,7 +200,7 @@ func VerifyOtp(c *gin.Context) {
 
 	} else{  
 		userCollection := db.Client.Database("db1").Collection("users")
-		userEntry:=models.NewUser(newUser.Name, newUser.Email, hashedPassword, "pending", false,false, newUser.Hospital)
+		userEntry:=models.NewUser(newUser.Name, newUser.Email, newUser.Password, "pending", false,false, newUser.Hospital)
 	    _, err = userCollection.InsertOne(context.TODO(), userEntry)
 
 		if err != nil {

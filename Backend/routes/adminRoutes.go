@@ -9,9 +9,12 @@ import (
 func RegisterAdminRoutes(router *gin.Engine) {
    adminGroup := router.Group("/admin")
    {
-	 adminGroup.GET("/pending/:hospital", handlers.GetUnApprovedUsers)
-	 adminGroup.GET("/approved/:hospital", handlers.GetApprovedUsers)
-	 adminGroup.PUT("/edit-user",  handlers.ChangeUserData)
+	 adminGroup.GET("/users", handlers.GetSelectedFilterUsers)
+	 adminGroup.PUT("/edit-user/:id",  handlers.ChangeUserData)
 	 adminGroup.POST("/add-user", handlers.CreateUser)
+	 adminGroup.DELETE("/remove-user/:id", handlers.RemoveUser)
+	 
+	 adminGroup.GET("/fields/:hospital", handlers.GetFields)
+	 adminGroup.PUT("/edit-field/:hospital", handlers.EditField)	
    }
 }

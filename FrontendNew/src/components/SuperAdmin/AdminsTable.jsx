@@ -89,19 +89,19 @@ const AdminsTable = ({ tableData }) => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {tableData2.map((row) => (
-            <tr key={row.id}>
+          {tableData.map((row) => (
+            <tr key={row.ID}>
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {row.name}
+                {row.Name}
               </td>
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {row.eamil}
+                {row.Email}
               </td>
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {row.organization}
+                {row.Hospital}
               </td>
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {row.approve}
+                {row.Status}
               </td>
               <td></td>
             </tr>

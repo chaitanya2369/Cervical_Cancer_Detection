@@ -1,16 +1,95 @@
 package handlers
 
 import (
+	"Cervical_Cancer_Detection/auth"
 	"Cervical_Cancer_Detection/db"
 	"Cervical_Cancer_Detection/models"
 	"context"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+func GetSelectedFilterAdmins(c *gin.Context){
+    status:=c.Query("status")
+    pageStr:=c.Query("page")
+    sizeStr:=c.Query("size")
+    search:=c.Query("search")
+
+    page, _ := strconv.Atoi(pageStr)
+    if page < 1 {
+		page = 1
+	}
+	size, _ := strconv.Atoi(sizeStr)
+	if size <= 0 {
+		size = 10
+	}
+
+	filter:=bson.M{}
+	filter["status"]=status
+	if search!=""{
+		filter["$or"] = []bson.M{
+                {"name": bson.M{"$regex": ".*" + search + ".*", "$options": "i"}},
+                {"email": bson.M{"$regex": ".*" + search + ".*", "$options": "i"}},
+                {"hospital": bson.M{"$regex": ".*" + search + ".*", "$options": "i"}},
+        }
+	}
+    adminCollection:=db.Client.Database("db1").Collection("admins")
+    
+	total,err:=adminCollection.CountDocuments(context.TODO(), filter)
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err})
+		return 
+	}
+    
+	skip := int64((page - 1) * size)
+    limit := int64(size)
+    opts := options.Find().SetSkip(skip).SetLimit(limit)
+
+	cursor, err:=adminCollection.Find(context.TODO(), filter, opts)
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err})
+		return 
+	}
+	defer cursor.Close(context.TODO())
+
+	var selectedFilterAdmins []models.ADMIN
+	if err=cursor.All(context.TODO(), &selectedFilterAdmins); err!=nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err})
+		return
+	}
+
+    c.JSON(http.StatusAccepted, gin.H{"success":true, "admins": selectedFilterAdmins, "count": total})
+}
+
+func createFieldsForHospital(hospital string) error {
+	var field models.PatientFields
+	field.Hospital = hospital
+	field.Fields = []string{}
+
+	fieldCollection := db.Client.Database("db1").Collection("fields")
+	// Check if the hospital already exists	
+
+	var existingField models.PatientFields
+	err := fieldCollection.FindOne(context.TODO(), bson.M{"hospital": hospital}).Decode(&existingField)
+	if err == nil {
+		return nil
+	}
+
+	_, err = fieldCollection.InsertOne(context.TODO(), field)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 
 func CreateAdmin(c *gin.Context) {
 	var newAdmin models.ADMIN
@@ -31,57 +110,31 @@ func CreateAdmin(c *gin.Context) {
 		c.JSON(http.StatusConflict, gin.H{"message": "User already exists"})
 		return
 	}
-    _, err = adminCollection.InsertOne(context.TODO(), newAdmin)
+	
+	newAdmin.Password, err = auth.HashPassword(auth.GenerateRandomPassword(10)) 
+	//need to send this password in Mail
+	if err != nil {
+		log.Fatal("Error hashing password: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success":false,"message": "Error creating admin", "error": err.Error()})
+		return
+	}
+	_, err = adminCollection.InsertOne(context.TODO(), newAdmin)
+	
 	if err != nil {
 		log.Fatal("Error inserting admin: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error creating admin", "error": err.Error()})
 		return
 	}
 
+	err = createFieldsForHospital(newAdmin.Hospital)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
+		return
+	}
+
 	// Respond with success
 	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully", "admin": newAdmin})
-}
-
-func GetUnApprovedAdmins(c *gin.Context) {
-   var UnApprovedAdmins []models.ADMIN
-   adminCollection:=db.Client.Database("db1").Collection("admins")
-   cur,err:= adminCollection.Find(context.TODO(), gin.H{"isApproved": false})
-
-   if err!=nil{
-	 log.Fatal(err)
-   }
-   for cur.Next(context.TODO()){
-	var elem models.ADMIN
-	err:=cur.Decode(&elem)
-
-	if err!=nil{
-		log.Fatal(err)
-	}
-	UnApprovedAdmins = append(UnApprovedAdmins, elem)
-   }
-
-   c.JSON(http.StatusAccepted, gin.H{"message": "successful", "admins": UnApprovedAdmins})
-}
-
-func GetApprovedAdmins(c *gin.Context){
-   var ApprovedAdmins []models.ADMIN
-   adminCollection:=db.Client.Database("db1").Collection("admins")
-   cur,err:= adminCollection.Find(context.TODO(), gin.H{"isApproved": true})
-
-   if err!=nil{
-	 log.Fatal(err)
-   }
-   for cur.Next(context.TODO()){
-	var elem models.ADMIN
-	err:=cur.Decode(&elem)
-
-	if err!=nil{
-		log.Fatal(err)
-	}
-	ApprovedAdmins = append(ApprovedAdmins, elem)
-   }
-
-   c.JSON(http.StatusAccepted, gin.H{"message": "successful", "admins": ApprovedAdmins})
 }
 
 func ChangeAdminData(c *gin.Context){ //send complete user
@@ -90,10 +143,19 @@ func ChangeAdminData(c *gin.Context){ //send complete user
 	 log.Fatal(err)
 	 return
    }
+
+   log.Println(admin)
+   id:=c.Param("id")
+   AdminId,_:= primitive.ObjectIDFromHex(id)
+
+
+   log.Println(id)
    
-   userCollection := db.Client.Database("db1").Collection("users")
-   filter := bson.M{"_id": admin.ID}
-   _,err := userCollection.ReplaceOne(context.TODO(), filter, admin)
+   adminCollection := db.Client.Database("db1").Collection("admins")
+   filter := bson.M{"_id": AdminId}
+   match,err := adminCollection.ReplaceOne(context.TODO(), filter, admin)
+   
+   log.Println(match.MatchedCount)
 
   if err!=nil{
 	log.Fatal(err)
@@ -101,4 +163,19 @@ func ChangeAdminData(c *gin.Context){ //send complete user
   }
 
   c.JSON(http.StatusAccepted, gin.H{"message": "Data changed"})
+}
+
+func RemoveAdmin(c *gin.Context) {
+	id := c.Param("id")
+	patientId, _ := primitive.ObjectIDFromHex(id)
+	adminCollection := db.Client.Database("db1").Collection("admins")
+	filter := bson.M{"_id": patientId}
+	_, err := adminCollection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error deleting admin", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Admin deleted successfully"})
 }
