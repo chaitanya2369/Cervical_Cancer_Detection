@@ -7,8 +7,8 @@ const Modal = ({ isOpen, onClose, onSave, title, children }) => {
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-md shadow-lg max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-gray-500">
-          <h2 className="text-2xl font-semibold text-white">{title || "Edit Details"}</h2>
+        <div className="flex items-center justify-between p-4 border-b bg-teal-400">
+          <h2 className="text-2xl font-semibold text-black">{title || "Edit Details"}</h2>
           <button
             onClick={onClose}
             className="text-white hover:text-gray-200 transition-colors focus:outline-none text-xl font-bold"

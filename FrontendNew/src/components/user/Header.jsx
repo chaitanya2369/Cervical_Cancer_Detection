@@ -17,7 +17,7 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
 
   const handleViewProfile = () => {
     console.log("View Profile clicked");
-    navigate("/profile");
+    navigate("/user/profile");
   };
 
   useEffect(() => {
@@ -32,9 +32,9 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
   }, []);
 
   return (
-    <header className="bg-white shadow-md p-4 flex items-center justify-between">
+    <header className="bg-transparent p-4 flex items-center justify-between">
       {/* Left Section - Dynamic Back Button */}
-      <div className="flex items-center space-x-2">
+      {/* <div className="flex items-center space-x-2">
         <button
           onClick={handleBackClick}
           className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
@@ -54,10 +54,10 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
           </svg>
           <span className="text-sm font-medium">{backText}</span>
         </button>
-      </div>
+      </div> */}
 
       {/* Center Section - Title */}
-      <div className="flex-1 text-center">
+      <div className="text-center">
         <h1 className="text-xl font-bold text-gray-800">{title}</h1>
       </div>
 
@@ -65,7 +65,7 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
       <div className="flex items-center space-x-4">
 
 
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative bg-gray-200 p-3 rounded-md" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
@@ -75,7 +75,7 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
               alt="Profile"
               className="w-8 h-8 rounded-full object-cover"
             />
-            <div className="flex items-center space-x-1">
+            <div className="flex  items-center space-x-1">
               <span className="text-sm font-medium text-gray-700">
                 Alfredo Westervelt
               </span>

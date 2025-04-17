@@ -16,13 +16,14 @@ export default function Login() {
   useEffect(() => {
     const token = Cookies.get("jwt-token");
     if (token) {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const user = JSON.parse(localStorage.getItem("user") || '{}');
+      console.log("token",user);
       if (user && user.ID) {
         // Determine dashboard based on user permissions
         if (user.user) {
-          navigate("/admin-dashboard");
+          navigate("/user/dashboard");
         } else if (user.admin) {
-          navigate("/doctor-dashboard");
+          navigate("/admin/dashboard");
         }
       } else {
         Cookies.remove("jwt-token");
@@ -52,7 +53,7 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/auth/login", {
+      const response = await fetch("http://10.2.96.197:8080/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,19 +65,19 @@ export default function Login() {
       });
 
       const data = await response.json();
-
+      console.log("data",data);
       if (data.message === "Password Matched") {
         // Store JWT token in cookie
         Cookies.set("jwt-token", data["jwt-token"], { expires: 7 }); // Expires in 7 days
 
         // Store user data in localStorage
-        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("user", JSON.stringify(data.user||data.admin));
 
         // Redirect based on role
         if (data.admin) {
-          navigate("/admin-dashboard");
+          navigate("/admin/dashboard");
         } else if (data.user) {
-          navigate("/doctor-dashboard");
+          navigate("/user/dashboard");
         }
       } else {
         setError(data.message || "Login failed. Please try again.");

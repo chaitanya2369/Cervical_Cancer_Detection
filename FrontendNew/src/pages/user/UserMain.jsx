@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import SideNavBar, { SideBarItem } from "../../components/general/SideNavBar";
 import UserDashboard from "../../components/user/UserDashboard";
 import ViewPatients from "../../components/user/ViewPatients";
-import { LayoutDashboard, UserCircle, Settings } from "lucide-react";
+import { LayoutDashboard, UserCircle, Settings,User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ViewAdmins from "../../components/SuperAdmin/ViewAdmins";
 import Header from "../../components/user/Header";
+import Profile from "../../components/user/ProfilePage";
 
 const UserMain = () => {
   const [activeItemId, setActiveItemId] = useState("dashboard");
@@ -22,7 +23,7 @@ const UserMain = () => {
   const items = [
     { id: "dashboard", text: "Dashboard", icon: <LayoutDashboard size={20} /> },
     { id: "patients", text: "Patients", icon: <UserCircle size={20} /> },
-    { id: "settings", text: "Settings", icon: <Settings size={20} /> },
+    { id: "profile", text:"Profile", icon:<User size={20}/>}
   ];
 
   const renderContent = () => {
@@ -31,8 +32,8 @@ const UserMain = () => {
         return <UserDashboard />;
       case "patients":
         return <ViewPatients />;
-      case "settings":
-        return null; // Placeholder for settings content
+      case "profile":
+        return <Profile />;
       default:
         return <h2>Select an item from the sidebar</h2>;
     }
@@ -47,6 +48,8 @@ const UserMain = () => {
         return { backText: "Dashboard", title: "Patients" };
       case "settings":
         return { backText: "Dashboard", title: "Settings" };
+      case "profile":
+        return { backText: "Dashboard", title: "Profile" };
       default:
         return { backText: "Back", title: "User Main" };
     }
