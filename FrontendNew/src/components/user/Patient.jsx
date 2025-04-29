@@ -69,7 +69,7 @@ const Patient = () => {
       alert("Please upload a .csv or .xlsx file.");
     }
   };
-
+  
   const handlePredict = async () => {
     if (!parsedData) {
       alert("Please upload a file and ensure it’s parsed before predicting.");
@@ -78,7 +78,7 @@ const Patient = () => {
 
     try {
       const response = await axios.post(
-        `http://127.0.0.1:5000/predict`,
+        `http://192.168.129.154:5000/predict`,
         parsedData
       );
       setPrediction(response.data.prediction || "NA");
@@ -205,14 +205,11 @@ const Patient = () => {
               <div className="bg-gray-50 p-4 rounded-lg shadow-sm flex items-center justify-center">
                 <div className="text-center">
                   <p className="text-lg font-semibold text-gray-700">
-                    <span className="text-teal-600">Cancer Percentage:</span>{" "}
-                    {prediction}%
+                    <span className="text-teal-600">Cancer Prediction:</span>{" "}
+                    {prediction}
                   </p>
                   <p className="text-md text-gray-600">
                     <span className="font-medium">Model Accuracy:</span> 96%
-                  </p>
-                  <p className="text-md text-gray-600">
-                    <span className="font-medium">Cancer Stage:</span> 1
                   </p>
                 </div>
               </div>
