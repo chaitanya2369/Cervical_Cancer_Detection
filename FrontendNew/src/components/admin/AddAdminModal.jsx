@@ -11,11 +11,16 @@ import {
   Checkbox,
 } from "@material-tailwind/react";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 
 const AddAdminModal = () => {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen((cur) => !cur);
-  // name, email, status, hospital
+  const [adminDetails, setAdminDetails] = useState({  });
+  const handleAddAdmin = () => {
+
+  };
+  
   return (
     <div>
       <Button onClick={handleOpen} className="bg-themeBlue flex">

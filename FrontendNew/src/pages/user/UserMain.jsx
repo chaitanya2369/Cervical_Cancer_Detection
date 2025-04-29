@@ -85,7 +85,7 @@ const UserMain = () => {
         ))}
       </SideNavBar>
       <main className="flex-1 h-screen overflow-auto">
-        <PagesHeader backText={backText} title={title} />
+        <Header backText={backText} title={title} />
         {renderContent()}
       </main>
     </div>
