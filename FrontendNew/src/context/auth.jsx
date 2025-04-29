@@ -6,6 +6,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState({
+    user: null,
     role: null,
     token: "",
   });
@@ -14,27 +15,36 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const data = Cookies.get("auth");
+    console.log("data: ",data);
     if (data) {
       const parsedData = JSON.parse(data);
+      console.log("parsedData",parsedData);
       setAuth({
         role: parsedData.role,
         token: parsedData.token,
+        user:parsedData.user,
       });
     }
+    // else{
+    //   navigate('/login',{replace:true});
+    // }
   }, []);
 
-  const login = (jwtToken, userRole) => {
-    setAuth({
+  const login = (jwtToken, userRole,userData) => {
+    const authData = {
       role: userRole,
       token: jwtToken,
-    });
-    Cookies.set("auth", JSON.stringify(auth), { expires: 1 }); //cookie expires in 1 day
+      user: userData,
+    };
+    setAuth(authData);
+    Cookies.set("auth", JSON.stringify(authData), { expires: 1 }); //cookie expires in 1 day
   };
 
   const logout = () => {
     setAuth({
       role: null,
       token: "",
+      user:null,
     });
     Cookies.remove("jwtToken"); // Remove token from cookies
   };

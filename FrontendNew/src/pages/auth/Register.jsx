@@ -58,8 +58,10 @@ export default function Signup() {
       return;
     }
 
+    const apiUrl = import.meta.env.VITE_API_URL;
+
     try {
-      const response = await fetch("http://localhost:8080/auth/signup", {
+      const response = await fetch(`${apiUrl}auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,12 +95,16 @@ export default function Signup() {
       <div className="absolute inset-0 bg-white opacity-10 mix-blend-overlay pointer-events-none"></div>
 
       {/* Header Section */}
-      <header className="w-full bg-teal-600 bg-opacity-90 text-white py-4 shadow-md z-10 relative">
+      <header className="w-full bg-slate-700 bg-opacity-90 text-white py-4 shadow-md z-10 relative">
         <div className="container mx-auto flex items-center justify-between px-6">
-          <h1 className="text-2xl font-bold">CerviScan</h1>
+          <Link to="/">
+            <h1 className="text-black font-bold text-3xl">
+              Cervi<span className="text-teal-400">Scan</span>
+            </h1>
+          </Link>
           <nav>
             <Link to="/login" className="text-white hover:underline ml-4">
-              Back to Login
+              Back to login
             </Link>
           </nav>
         </div>

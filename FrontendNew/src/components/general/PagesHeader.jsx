@@ -18,7 +18,7 @@ const PagesHeader = ({ backText = "Back", title = "Patient Details" }) => {
 
   const handleViewProfile = () => {
     console.log("View Profile clicked");
-    navigate("/profile");
+    navigate("/user/profile");
   };
 
   useEffect(() => {
@@ -34,9 +34,33 @@ const PagesHeader = ({ backText = "Back", title = "Patient Details" }) => {
 
   return (
     <header className="bg-transparent p-4 flex items-center justify-between">
-      {/* Center Section - Title */}
+      {/* Left Section - Dynamic Back Button */}
+      {/* <div className="flex items-center space-x-2">
+        <button
+          onClick={handleBackClick}
+          className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          <svg
+            className="w-5 h-5 mr-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          <span className="text-sm font-medium">{backText}</span>
+        </button>
+      </div> */}
 
-      <h1 className="text-3xl font-bold text-gray-800 ml-5 mt-2">{title}</h1>
+      {/* Center Section - Title */}
+      <div className="text-center">
+        <h1 className="text-xl font-bold text-gray-800">{title}</h1>
+      </div>
 
       {/* Right Section - Icons and Profile */}
       <div className="flex items-center space-x-4 bg-themeDarkGray rounded-xl p-3">
@@ -50,7 +74,7 @@ const PagesHeader = ({ backText = "Back", title = "Patient Details" }) => {
               alt="Profile"
               className="w-8 h-8 rounded-full object-cover"
             />
-            <div className="flex items-center space-x-1">
+            <div className="flex  items-center space-x-1">
               <span className="text-sm font-medium text-gray-700">
                 Alfredo Westervelt
               </span>

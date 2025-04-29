@@ -4,6 +4,8 @@ import Button from "../../components/general/Button";
 import Cookies from "js-cookie";
 import { useAuth } from "../../context/auth";
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 export default function Login() {
   const { auth, setAuth, login, logout } = useAuth();
   const [formData, setFormData] = useState({
@@ -54,7 +56,7 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/auth/login", {
+      const response = await fetch(`${apiUrl}auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,7 +70,7 @@ export default function Login() {
       const data = await response.json();
 
       if (data.success) {
-        login(data.token, data.role); //store in auth context
+        login(data.jwtToken, data.role,data.user); //store in auth context
         // Redirect based on role
         if (data.role == "admin") {
           navigate("/admin/dashboard");

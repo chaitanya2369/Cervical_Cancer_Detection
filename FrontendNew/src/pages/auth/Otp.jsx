@@ -35,11 +35,12 @@ export default function Otp() {
     }
     setError("");
   };
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleResendOtp = async () => {
     if (!resendDisabled) {
       try {
-        const response = await fetch("http://localhost:8080/auth/resend-otp", {
+        const response = await fetch(`${apiUrl}auth/resend-otp`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -70,7 +71,7 @@ export default function Otp() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/auth/verify-otp", {
+      const response = await fetch(`${apiUrl}auth/verify-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -82,7 +83,7 @@ export default function Otp() {
       });
 
       const data = await response.json();
-
+      console.log(data);
       if (data.success) {
         navigate("/login");
       } else {

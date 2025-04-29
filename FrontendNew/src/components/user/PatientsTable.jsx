@@ -27,24 +27,24 @@ const PatientsTable = ({ tableData, setSelectedPatient }) => {
         <tbody className="bg-white divide-y divide-gray-200">
           {currentItems.map((row) => (
             <tr
-              key={row.id}
+              key={row.ID}
               className="cursor-pointer hover:bg-teal-50"
-              onClick={() => handlePatientClick(row.id)}
+              onClick={() => handlePatientClick(row.ID)}
             >
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {row.id}
+                {row.ID}
               </td>
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {row.name}
+                {row.Name}
               </td>
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {row.phoneNumber}
+                {row.PhoneNumber}
               </td>
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {row.status}
+                {row.IsActive?"Active":"In Active"}
               </td>
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-teal-600 hover:underline">
-                <button onClick={(e) => { e.stopPropagation(); alert(`Editing patient ${row.name}`); }}>
+                <button onClick={(e) => { e.stopPropagation(); alert(`Editing patient ${row.Name}`); }}>
                   Edit Details
                 </button>
               </td>
