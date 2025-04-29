@@ -162,7 +162,7 @@ func ChangeAdminData(c *gin.Context){ //send complete user
 	return
   }
 
-  c.JSON(http.StatusAccepted, gin.H{"message": "Data changed"})
+  c.JSON(http.StatusAccepted, gin.H{"success": true,"message": "Data changed"})
 }
 
 func RemoveAdmin(c *gin.Context) {

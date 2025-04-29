@@ -194,7 +194,7 @@ func VerifyOtp(c *gin.Context) {
 		err = createFieldsForHospital(newUser.Hospital)
 
 		if err != nil {
-		    c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
+		    c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error", "success": false})
 		    return
 	    }
 
@@ -204,7 +204,7 @@ func VerifyOtp(c *gin.Context) {
 	    _, err = userCollection.InsertOne(context.TODO(), userEntry)
 
 		if err != nil {
-		    c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
+		    c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error", "success": false})
 		    return
 	    }
 	}
@@ -214,5 +214,5 @@ func VerifyOtp(c *gin.Context) {
 		log.Fatal("Error while deleteone")
 	}
 
-	c.JSON(http.StatusAccepted, gin.H{"message": "OTP Matched!, You can Login now"})
+	c.JSON(http.StatusAccepted, gin.H{"message": "OTP Matched!, You can Login now", "success": true})
 }

@@ -23,7 +23,12 @@ const ViewPatients = () => {
       { id: 7, name: "Sophia", phoneNumber: "9334455667", status: "active" },
       { id: 8, name: "Elijah", phoneNumber: "9445566778", status: "inactive" },
       { id: 9, name: "Isabella", phoneNumber: "9556677889", status: "active" },
-      { id: 10, name: "William", phoneNumber: "9667788990", status: "inactive" },
+      {
+        id: 10,
+        name: "William",
+        phoneNumber: "9667788990",
+        status: "inactive",
+      },
     ];
     setTableData(initialData);
   }, []);
@@ -33,15 +38,29 @@ const ViewPatients = () => {
   };
 
   const handleAddPatient = () => {
-    const nameInput = document.querySelector('input[placeholder="Enter patient name"]').value;
-    const phoneInput = document.querySelector('input[placeholder="Enter phone number"]').value;
-    const ageInput = document.querySelector('input[placeholder="Enter age"]').value;
-    const genderSelect = document.querySelector('select').value;
+    const nameInput = document.querySelector(
+      'input[placeholder="Enter patient name"]'
+    ).value;
+    const phoneInput = document.querySelector(
+      'input[placeholder="Enter phone number"]'
+    ).value;
+    const ageInput = document.querySelector(
+      'input[placeholder="Enter age"]'
+    ).value;
+    const genderSelect = document.querySelector("select").value;
     const dobInput = document.querySelector('input[type="date"]').value;
-    const emailInput = document.querySelector('input[placeholder="Enter email address"]').value;
-    const addressInput = document.querySelector('textarea[placeholder="Enter full address"]').value;
-    const categorySelect = document.querySelector('select option:checked').textContent;
-    const notesInput = document.querySelector('textarea[placeholder="Any important notes or history..."]').value;
+    const emailInput = document.querySelector(
+      'input[placeholder="Enter email address"]'
+    ).value;
+    const addressInput = document.querySelector(
+      'textarea[placeholder="Enter full address"]'
+    ).value;
+    const categorySelect = document.querySelector(
+      "select option:checked"
+    ).textContent;
+    const notesInput = document.querySelector(
+      'textarea[placeholder="Any important notes or history..."]'
+    ).value;
 
     if (nameInput && phoneInput) {
       const newPatient = {
@@ -53,23 +72,29 @@ const ViewPatients = () => {
         phoneNumber: phoneInput,
         email: emailInput || null,
         address: addressInput || null,
-        status: categorySelect.toLowerCase().includes("active") ? "active" : "inactive",
+        status: categorySelect.toLowerCase().includes("active")
+          ? "active"
+          : "inactive",
         notes: notesInput || null,
       };
       setTableData([...tableData, newPatient]);
       setIsAddModalOpen(false);
       // Reset form
-      document.querySelectorAll('input, select, textarea').forEach(input => input.value = '');
+      document
+        .querySelectorAll("input, select, textarea")
+        .forEach((input) => (input.value = ""));
     } else {
       alert("Name and Phone Number are required!");
     }
   };
 
-  const filteredData = tableData.filter((patient) =>
-    patient.name.toLowerCase().includes(search.toLowerCase()) ||
-    patient.phoneNumber.includes(search) ||
-    patient.status.toLowerCase().includes(search.toLowerCase()) ||
-    (patient.email && patient.email.toLowerCase().includes(search.toLowerCase()))
+  const filteredData = tableData.filter(
+    (patient) =>
+      patient.name.toLowerCase().includes(search.toLowerCase()) ||
+      patient.phoneNumber.includes(search) ||
+      patient.status.toLowerCase().includes(search.toLowerCase()) ||
+      (patient.email &&
+        patient.email.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -143,7 +168,9 @@ const ViewPatients = () => {
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Patient Name</label>
+              <label className="block text-gray-700 font-medium mb-1">
+                Patient Name
+              </label>
               <input
                 type="text"
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
@@ -151,7 +178,9 @@ const ViewPatients = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Age</label>
+              <label className="block text-gray-700 font-medium mb-1">
+                Age
+              </label>
               <input
                 type="number"
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
@@ -159,10 +188,10 @@ const ViewPatients = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Gender</label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              >
+              <label className="block text-gray-700 font-medium mb-1">
+                Gender
+              </label>
+              <select className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
                 <option value="">Select gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -170,7 +199,9 @@ const ViewPatients = () => {
               </select>
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Date of Birth</label>
+              <label className="block text-gray-700 font-medium mb-1">
+                Date of Birth
+              </label>
               <input
                 type="date"
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
@@ -181,7 +212,9 @@ const ViewPatients = () => {
           {/* Contact Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Phone Number</label>
+              <label className="block text-gray-700 font-medium mb-1">
+                Phone Number
+              </label>
               <input
                 type="tel"
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
@@ -189,7 +222,9 @@ const ViewPatients = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Email</label>
+              <label className="block text-gray-700 font-medium mb-1">
+                Email
+              </label>
               <input
                 type="email"
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
@@ -197,7 +232,9 @@ const ViewPatients = () => {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-gray-700 font-medium mb-1">Address</label>
+              <label className="block text-gray-700 font-medium mb-1">
+                Address
+              </label>
               <textarea
                 rows={2}
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
@@ -209,16 +246,18 @@ const ViewPatients = () => {
           {/* Medical Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 font-medium mb-1">Treatment Category</label>
-              <select
-                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              >
+              <label className="block text-gray-700 font-medium mb-1">
+                Treatment Category
+              </label>
+              <select className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
                 <option value="Active Treatment">Active Treatment</option>
                 <option value="Inactive Treatment">Inactive Treatment</option>
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-gray-700 font-medium mb-1">Medical History / Notes</label>
+              <label className="block text-gray-700 font-medium mb-1">
+                Medical History / Notes
+              </label>
               <textarea
                 rows={3}
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"

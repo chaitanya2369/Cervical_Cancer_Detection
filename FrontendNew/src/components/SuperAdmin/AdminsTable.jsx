@@ -1,79 +1,43 @@
+import { Button } from "@material-tailwind/react";
+import axios from "axios";
+import { Pencil, Trash2 } from "lucide-react";
 import React from "react";
 
-const tableData2 = [
-  {
-    id: 1,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-  {
-    id: 2,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-  {
-    id: 3,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-  {
-    id: 4,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-  {
-    id: 5,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-  {
-    id: 6,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-  {
-    id: 7,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-  {
-    id: 8,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-  {
-    id: 9,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-  {
-    id: 10,
-    name: "Sanmai",
-    eamil: "ysreddy377@gmail.com",
-    organization: "YSR",
-    status: "approved",
-  },
-];
+const AdminsTable = ({ tableData, setTableData }) => {
+  const VITE_API_URL = import.meta.env.VITE_API_URL;
 
-const AdminsTable = ({ tableData }) => {
+  const deleteAdmin = async (adminId) => {
+    const resp = await axios.delete(
+      `${VITE_API_URL}/super-admin/remove-admin/${adminId}`
+    );
+    const data = resp.data;
+    if (data.success) {
+      setTableData((prevData) =>
+        prevData.filter((item) => item.ID !== adminId)
+      );
+    } else {
+      console.log("Error while deleting the admin");
+    }
+  };
+
+  const editAdmin = () => {};
+
+  const updateStatus = async (admin, value) => {
+    setTableData((prevData) =>
+      prevData.map((item) =>
+        item.ID === admin.ID ? { ...item, Status: value } : item
+      )
+    );
+    admin.Status = value;
+    const resp = await axios.put(
+      `${VITE_API_URL}/super-admin/edit-admin/${admin.ID}`,
+      admin
+    );
+    if (!resp.data.success) {
+      console.log("Error while updating the status");
+    }
+  };
+
   return (
     <div className="w-full p-3">
       <table className="w-full divide-y divide-gray-200 rounded-xl overflow-hidden border">
@@ -85,7 +49,7 @@ const AdminsTable = ({ tableData }) => {
               Organization
             </th>
             <th className="px-6 py-3 text-left text-md font-medium">Status</th>
-            <th></th>
+            <th className="px-6 py-3 text-left text-md font-medium">Action</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -101,9 +65,43 @@ const AdminsTable = ({ tableData }) => {
                 {row.Hospital}
               </td>
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {row.Status}
+                <select
+                  value={row.Status}
+                  onChange={(e) => updateStatus(row, e.target.value)}
+                  className={`p-1 rounded-lg ${
+                    row.Status == "approved"
+                      ? "bg-green-200"
+                      : row.Status == "pending"
+                      ? "bg-yellow-200"
+                      : "bg-red-200"
+                  } `}
+                >
+                  <option value="approved" className="bg-white">
+                    Approved
+                  </option>
+                  <option value="pending" className="bg-white">
+                    Pending
+                  </option>
+                  <option value="unapproved" className="bg-white">
+                    Unapproved
+                  </option>
+                </select>
               </td>
-              <td></td>
+              <td className="flex px-6 py-3">
+                <Pencil
+                  size={18}
+                  strokeWidth={1.5}
+                  className="hover:cursor-pointer"
+                  onClick={() => editAdmin(row.ID)}
+                />
+                <div className="w-px bg-gray-400 mx-1"></div>
+                <Trash2
+                  size={18}
+                  strokeWidth={1.5}
+                  className="hover:cursor-pointer"
+                  onClick={() => deleteAdmin(row.ID)}
+                />
+              </td>
             </tr>
           ))}
         </tbody>

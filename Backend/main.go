@@ -13,7 +13,7 @@ import (
 func main() {
 	r := gin.Default()
     r.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"http://localhost:5173"},
+        AllowOrigins:     []string{"*"},
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
         ExposeHeaders:    []string{"Content-Length"},
@@ -29,5 +29,7 @@ func main() {
 	routes.RegisterAdminRoutes(r) //admin routes
 	routes.RegisterUserRoutes(r) //user routes
 
-	r.Run(":8080")	
+
+
+	r.Run("192.168.37.154:8080")
 }

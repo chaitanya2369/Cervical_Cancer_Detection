@@ -29,6 +29,7 @@ func init(){
 }
 
 func GetSelectedFilterPatients(c *gin.Context){
+	hospital:=c.Param("hospital")
     status:=c.Query("status")
     pageStr:=c.Query("page")
     sizeStr:=c.Query("size")
@@ -44,17 +45,20 @@ func GetSelectedFilterPatients(c *gin.Context){
 	}
 
 	filter:=bson.M{}
-	filter["status"]=status
+	filter["is_active"]=true
+	filter["hospital"]=hospital
+	if status=="inactive"{
+		filter["is_active"] =false
+	}
 	if search!=""{
 		filter["$or"] = []bson.M{
                 {"name": bson.M{"$regex": ".*" + search + ".*", "$options": "i"}},
-                {"email": bson.M{"$regex": ".*" + search + ".*", "$options": "i"}},
-                {"hospital": bson.M{"$regex": ".*" + search + ".*", "$options": "i"}},
+                {"phoneNumber": bson.M{"$regex": ".*" + search + ".*", "$options": "i"}},
         }
 	}
-    adminCollection:=db.Client.Database("db1").Collection("admins")
+    patientsCollection:=db.Client.Database("db1").Collection("patients")
     
-	total,err:=adminCollection.CountDocuments(context.TODO(), filter)
+	total,err:=patientsCollection.CountDocuments(context.TODO(), filter)
 	if err!=nil{
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err})
 		return 
@@ -64,20 +68,20 @@ func GetSelectedFilterPatients(c *gin.Context){
     limit := int64(size)
     opts := options.Find().SetSkip(skip).SetLimit(limit)
 
-	cursor, err:=adminCollection.Find(context.TODO(), filter, opts)
+	cursor, err:=patientsCollection.Find(context.TODO(), filter, opts)
 	if err!=nil{
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err})
 		return 
 	}
 	defer cursor.Close(context.TODO())
 
-	var selectedFilterAdmins []models.ADMIN
-	if err=cursor.All(context.TODO(), &selectedFilterAdmins); err!=nil{
+    var selectedFilterPatients []models.PATIENT
+	if err=cursor.All(context.TODO(), &selectedFilterPatients); err!=nil{
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err})
 		return
 	}
 
-    c.JSON(http.StatusAccepted, gin.H{"success":true, "admins": selectedFilterAdmins, "count": total})
+    c.JSON(http.StatusAccepted, gin.H{"success":true, "patients": selectedFilterPatients, "count": total})
 }
 
 func GetPatientById(c *gin.Context) { //patient id
@@ -135,7 +139,7 @@ func AddNewPatient(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted, gin.H{"message": "Patient Added Successfully"})
+	c.JSON(http.StatusAccepted, gin.H{"message": "Patient Added Successfully", "success": true})
 } 
 
 func EditPatient(c *gin.Context) {
@@ -171,6 +175,21 @@ func RemovePatient(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Patient Removed Successfully"})
+}
+
+func GetFieldsForUser(c *gin.Context) {
+	hospital := c.Param("hospital")
+	fieldsCollection := db.Client.Database("db1").Collection("fields")
+
+	var fields models.PatientFields
+	err := fieldsCollection.FindOne(context.TODO(), bson.M{"hospital": hospital}).Decode(&fields)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "fields": fields.Fields})
+	
 }
 
 // func uploadImageInS3(file multipart.File, key string) {

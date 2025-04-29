@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import SideNavBar, { SideBarItem } from "../../components/general/SideNavBar";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, UserCircle, Settings } from "lucide-react";
+import { LayoutDashboard, UserCircle, Settings, User } from "lucide-react";
 import AdminDashboard from "../../components/admin/AdminDashboard";
 import ViewUsers from "../../components/admin/ViewUsers";
+import PagesHeader from "../../components/general/PagesHeader";
+import Profile from "../../components/SuperAdmin/Profile";
 
 const AdminMain = () => {
   const [activeItemId, setactiveItemId] = useState("dashboard");
@@ -22,15 +24,16 @@ const AdminMain = () => {
       icon: <LayoutDashboard size={20} />,
     },
     { id: "users", text: "Users", icon: <UserCircle size={20} /> },
-    { id: "settings", text: "Settings", icon: <Settings size={20} /> },
+    { id: "profile", text: "Profile", icon: <User size={20} /> },
   ];
 
   const renderContent = () => {
     if (activeItemId == "dashboard") {
       return <AdminDashboard />;
-    } else if (activeItemId == "admins") {
+    } else if (activeItemId == "users") {
       return <ViewUsers />;
-    } else if (activeItemId == "settings") {
+    } else if (activeItemId == "profile") {
+      return <Profile />;
     } else {
       return <h2>Select an item from the sidebar</h2>;
     }
@@ -50,7 +53,9 @@ const AdminMain = () => {
           ))}
         </SideNavBar>
         <main className="w-screen h-screen">
-          <div className="flex justify-end">Admin</div>
+          <PagesHeader
+            title={activeItemId.charAt(0).toUpperCase() + activeItemId.slice(1)}
+          />
           {renderContent()}
         </main>
       </div>

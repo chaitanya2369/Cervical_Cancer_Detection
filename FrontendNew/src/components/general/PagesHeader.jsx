@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Header = ({ backText = "Back", title = "Patient Details" }) => {
+const PagesHeader = ({ backText = "Back", title = "Patient Details" }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -10,7 +10,8 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
     navigate(-1);
   };
 
-  const handleLogout = () => {-1
+  const handleLogout = () => {
+    -1;
     console.log("Logout clicked");
     navigate("/login");
   };
@@ -32,39 +33,13 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
   }, []);
 
   return (
-    <header className="bg-white shadow-md p-4 flex items-center justify-between">
-      {/* Left Section - Dynamic Back Button */}
-      <div className="flex items-center space-x-2">
-        <button
-          onClick={handleBackClick}
-          className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          <svg
-            className="w-5 h-5 mr-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          <span className="text-sm font-medium">{backText}</span>
-        </button>
-      </div>
-
+    <header className="bg-transparent p-4 flex items-center justify-between">
       {/* Center Section - Title */}
-      <div className="flex-1 text-center">
-        <h1 className="text-xl font-bold text-gray-800">{title}</h1>
-      </div>
+
+      <h1 className="text-3xl font-bold text-gray-800 ml-5 mt-2">{title}</h1>
 
       {/* Right Section - Icons and Profile */}
-      <div className="flex items-center space-x-4">
-
-
+      <div className="flex items-center space-x-4 bg-themeDarkGray rounded-xl p-3">
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -118,4 +93,4 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
   );
 };
 
-export default Header;
+export default PagesHeader;

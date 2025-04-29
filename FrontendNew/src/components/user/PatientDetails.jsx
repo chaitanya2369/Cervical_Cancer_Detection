@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Header from "./Header";
+// import PagesHeader from "../general/PagesHeader";
 import Modal from "../general/Modal"; // Adjust path as needed
 
 const PatientDetails = () => {
@@ -106,12 +106,18 @@ const PatientDetails = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-lg">{patientData.generalInfo.name.charAt(0)}</span>
+                <span className="text-lg">
+                  {patientData.generalInfo.name.charAt(0)}
+                </span>
               )}
             </div>
             <div>
-              <h2 className="text-xl font-bold">{patientData.generalInfo.name}</h2>
-              <p className="text-sm text-gray-600">Patient ID: {patientData.generalInfo.patientID}</p>
+              <h2 className="text-xl font-bold">
+                {patientData.generalInfo.name}
+              </h2>
+              <p className="text-sm text-gray-600">
+                Patient ID: {patientData.generalInfo.patientID}
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -135,25 +141,30 @@ const PatientDetails = () => {
                 <h3 className="text-lg font-medium mb-4">General Info</h3>
                 <p>
                   <strong>Consult Date: </strong>
-                  <br />{patientData.generalInfo.consultDate}
+                  <br />
+                  {patientData.generalInfo.consultDate}
                 </p>
                 <p>
                   <strong>Age</strong>
-                  <br />{patientData.generalInfo.age}
+                  <br />
+                  {patientData.generalInfo.age}
                 </p>
                 <p>
                   <strong>Phone Number</strong>
-                  <br />{patientData.contactInfo.phone}
+                  <br />
+                  {patientData.contactInfo.phone}
                 </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg w-1/2 ml-2">
                 <p>
                   <strong>Date of Birth</strong>
-                  <br />{patientData.generalInfo.dateOfBirth}
+                  <br />
+                  {patientData.generalInfo.dateOfBirth}
                 </p>
                 <p>
                   <strong>Address</strong>
-                  <br />{patientData.contactInfo.address}
+                  <br />
+                  {patientData.contactInfo.address}
                 </p>
               </div>
             </div>
@@ -181,7 +192,9 @@ const PatientDetails = () => {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">Body Height</p>
+                    <p className="text-sm text-gray-600 font-semibold">
+                      Body Height
+                    </p>
                     <p className="text-lg font-bold text-teal-800">
                       {patientData.medicalInfo.bodyHeight}
                     </p>
@@ -202,7 +215,9 @@ const PatientDetails = () => {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">Body Weight</p>
+                    <p className="text-sm text-gray-600 font-semibold">
+                      Body Weight
+                    </p>
                     <p className="text-lg font-bold text-teal-800">
                       {patientData.medicalInfo.bodyWeight}
                     </p>
@@ -223,7 +238,9 @@ const PatientDetails = () => {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">Body Mass Index</p>
+                    <p className="text-sm text-gray-600 font-semibold">
+                      Body Mass Index
+                    </p>
                     <p className="text-lg font-bold text-teal-800">
                       {patientData.medicalInfo.bodyMassIndex}
                     </p>
@@ -244,7 +261,9 @@ const PatientDetails = () => {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">Heart Rate</p>
+                    <p className="text-sm text-gray-600 font-semibold">
+                      Heart Rate
+                    </p>
                     <p className="text-lg font-bold text-teal-800">
                       {patientData.medicalInfo.heartRate}
                     </p>
@@ -265,7 +284,9 @@ const PatientDetails = () => {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">Blood Pressure</p>
+                    <p className="text-sm text-gray-600 font-semibold">
+                      Blood Pressure
+                    </p>
                     <p className="text-lg font-bold text-teal-800">
                       {patientData.medicalInfo.bloodPressure}
                     </p>
@@ -286,7 +307,9 @@ const PatientDetails = () => {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">Blood Sugar</p>
+                    <p className="text-sm text-gray-600 font-semibold">
+                      Blood Sugar
+                    </p>
                     <p className="text-lg font-bold text-teal-800">
                       {patientData.medicalInfo.bloodSugar}
                     </p>
@@ -304,7 +327,9 @@ const PatientDetails = () => {
                     key={index}
                     className="bg-gray-100 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-300"
                   >
-                    <p className="text-sm text-gray-700 font-medium">{note.date}</p>
+                    <p className="text-sm text-gray-700 font-medium">
+                      {note.date}
+                    </p>
                     <p className="text-gray-900 mt-2">{note.note}</p>
                   </div>
                 ))}
@@ -328,16 +353,22 @@ const PatientDetails = () => {
             <input
               type="text"
               value={editedData.generalInfo.name}
-              onChange={(e) => handleInputChange("generalInfo", "name", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("generalInfo", "name", e.target.value)
+              }
               className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Consult Date</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Consult Date
+            </label>
             <input
               type="text"
               value={editedData.generalInfo.consultDate}
-              onChange={(e) => handleInputChange("generalInfo", "consultDate", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("generalInfo", "consultDate", e.target.value)
+              }
               className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -346,45 +377,63 @@ const PatientDetails = () => {
             <input
               type="text"
               value={editedData.generalInfo.age}
-              onChange={(e) => handleInputChange("generalInfo", "age", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("generalInfo", "age", e.target.value)
+              }
               className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Date of Birth</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Date of Birth
+            </label>
             <input
               type="text"
               value={editedData.generalInfo.dateOfBirth}
-              onChange={(e) => handleInputChange("generalInfo", "dateOfBirth", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("generalInfo", "dateOfBirth", e.target.value)
+              }
               className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Status</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Status
+            </label>
             <input
               type="text"
               value={editedData.generalInfo.status}
-              onChange={(e) => handleInputChange("generalInfo", "status", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("generalInfo", "status", e.target.value)
+              }
               className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           {/* Contact Info */}
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Phone</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Phone
+            </label>
             <input
               type="text"
               value={editedData.contactInfo.phone}
-              onChange={(e) => handleInputChange("contactInfo", "phone", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("contactInfo", "phone", e.target.value)
+              }
               className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Address</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Address
+            </label>
             <input
               type="text"
               value={editedData.contactInfo.address}
-              onChange={(e) => handleInputChange("contactInfo", "address", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("contactInfo", "address", e.target.value)
+              }
               className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -409,17 +458,25 @@ const PatientDetails = () => {
           {/* Patient Notes */}
           {editedData.patientNotes.map((note, index) => (
             <div key={index} className="space-y-2">
-              <label className="block text-gray-700 font-medium mb-1">Note {index + 1} Date</label>
+              <label className="block text-gray-700 font-medium mb-1">
+                Note {index + 1} Date
+              </label>
               <input
                 type="text"
                 value={note.date}
-                onChange={(e) => handleNoteChange(index, "date", e.target.value)}
+                onChange={(e) =>
+                  handleNoteChange(index, "date", e.target.value)
+                }
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              <label className="block text-gray-700 font-medium mb-1">Note {index + 1} Text</label>
+              <label className="block text-gray-700 font-medium mb-1">
+                Note {index + 1} Text
+              </label>
               <textarea
                 value={note.note}
-                onChange={(e) => handleNoteChange(index, "note", e.target.value)}
+                onChange={(e) =>
+                  handleNoteChange(index, "note", e.target.value)
+                }
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>

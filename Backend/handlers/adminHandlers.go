@@ -66,7 +66,7 @@ func GetSelectedFilterUsers(c *gin.Context){
 		return
 	}
 
-    c.JSON(http.StatusAccepted, gin.H{"success":true, "admins": selectedFilterUsers, "count": total})
+    c.JSON(http.StatusAccepted, gin.H{"success":true, "users": selectedFilterUsers, "count": total})
 }
 
 func ChangeUserData(c *gin.Context){ //send complete user
