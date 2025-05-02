@@ -460,7 +460,7 @@ func EditUserDetails(c *gin.Context){
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Details updated successfully", "admin": editedUser})
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Details updated successfully", "user": editedUser})
 }
 
 // func uploadImageInS3(file multipart.File, key string) {
