@@ -224,7 +224,7 @@ const Patient = ({ id }) => {
       const response = await axios.get(`${apiUrl}/user/history/${id}`);
       if (response.status === 200) {
         console.log("Patient history:", response.data);
-        setHistoryData(response.data.history.History); // Set to History array
+        setHistoryData(response.data.history?.History); // Set to History array
         setShowHistory(true);
       } else {
         throw new Error("Failed to fetch patient history");
@@ -591,7 +591,7 @@ const Patient = ({ id }) => {
                       </tr>
                     </thead>
                     <tbody>
-                      {historyData.map((entry, index) => {
+                      {historyData!=null && historyData.map((entry, index) => {
                         const predictionData = getPredictionData(entry.Prediction);
                         return (
                           <tr
