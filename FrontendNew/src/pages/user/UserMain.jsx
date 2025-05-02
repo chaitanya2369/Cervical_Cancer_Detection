@@ -15,13 +15,19 @@ import Header from "../../components/user/Header";
 import Profile from "../../components/user/ProfilePage";
 import TrainingData from "../../components/user/TrainingData";
 
+import { useAuth } from "../../context/auth";
+
+
+
 const UserMain = () => {
   const [activeItemId, setActiveItemId] = useState("dashboard");
   const navigate = useNavigate();
-
+  
   const handleItemClick = (itemId) => {
     setActiveItemId(itemId);
   };
+
+
 
   useEffect(() => {
     navigate("/user/" + activeItemId);
@@ -70,6 +76,9 @@ const UserMain = () => {
   };
 
   const { backText, title } = getHeaderProps();
+
+
+
 
   return (
     <div className="flex">

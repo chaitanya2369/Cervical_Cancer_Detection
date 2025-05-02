@@ -8,8 +8,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { Loader } from "lucide-react";
 
+const SERVER_URL = import.meta.env.VITE_API_URL;
+const HOSPITAL = "KIMS"; // Use one consistent variable
+
 const ViewPatients = () => {
-  const [selectedCategory, setSelectedCategory] = useState("Active Treatment");
+  const [selectedCategory, setSelectedCategory] = useState("active");
   const [search, setSearch] = useState("");
   const [tableData, setTableData] = useState([]);
   const [pageNumber, setPageNumber] = useState(1);
@@ -18,17 +21,20 @@ const ViewPatients = () => {
   const [selectedPatient, setSelectedPatient] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [fields, setFields] = useState([]);
 
-  // Form state
+  // Form state - Initialize with all required fields
   const [newPatient, setNewPatient] = useState({
+    consultdate: new Date().toISOString().split("T")[0], // Default to today's date
     name: "",
     age: "",
-    gender: "Male",
-    dob: "",
-    phoneNumber: "",
-    email: "",
+    phoneNumber: "", // Added this missing field
     address: "",
-    notes: "",
+    dateofbirth: "",
+    hospital: HOSPITAL,
+
+    isactive: true, // Default to active
+    fields: {},
   });
 
   const auth = useAuth();
@@ -44,20 +50,32 @@ const ViewPatients = () => {
     }));
   };
 
+  const fetchFields = async () => {
+    try {
+      const response = await axios.get(`${SERVER_URL}/user/fields/${HOSPITAL}`);
+      console.log("Fields Response:", response.data);
+  
+      if (response.data.success) {
+        setFields(response.data.fields || []);
+      } else {
+        console.log("Failed to fetch the fields");
+        setFields([]);
+      }
+    } catch (error) {
+      console.error("Error fetching fields:", error);
+      setFields([]);
+    }
+  };
+  
   useEffect(() => {
-    // if (!user) {
-    //   return; // Early return if no user
-    // }
-
     const fetchPatients = async () => {
       setIsLoading(true);
       try {
-        const SERVER_URL = import.meta.env.VITE_API_URL;
         const status = selectedCategory.toLowerCase();
-        const hospital = "KIMS";
+        console.log("status: ", status);
 
         const resp = await axios.get(
-          `${SERVER_URL}user/patients/${hospital}?status=${status}&page=${pageNumber}&size=${pageSize}&search=${search}`,
+          `${SERVER_URL}/user/patients/${HOSPITAL}?status=${status}&page=${pageNumber}&size=${pageSize}&search=${search}`,
           {
             headers: { "Content-Type": "application/json" },
           }
@@ -67,6 +85,7 @@ const ViewPatients = () => {
         console.log("data: ", data);
         if (data.success) {
           setTableData(data.patients || []);
+          setMaxPages(data.totalPages || 1);
         } else {
           console.error("Failed to fetch patients:", data.message);
           setTableData([]);
@@ -88,64 +107,86 @@ const ViewPatients = () => {
   };
 
   const handleAddPatient = async () => {
-    // Basic validation
+    // Form validation
     if (!newPatient.name || !newPatient.phoneNumber) {
       alert("Name and Phone Number are required!");
       return;
     }
-
+  
     try {
-      // In a real implementation, you would send this to your API
-      const SERVER_URL = import.meta.env.VITE_API_URL;
-      const hospital = user.Hospital;
-
+      // Determine active status based on selected category
+      const isActive = selectedCategory.toLowerCase() === "active";
+      console.log("isActive: ", isActive);
+      console.log("newPatient: ", newPatient);
+      // Prepare the data to be sent
+      const patientData = {
+        ...newPatient,
+        hospital: HOSPITAL,
+        isactive: isActive,
+      };
+      
+      console.log("Sending patient data:", patientData);
+      
       const response = await axios.post(
-        `${SERVER_URL}/user/patients/${hospital}`,
-        {
-          ...newPatient,
-          status: selectedCategory.toLowerCase().includes("active")
-            ? "active"
-            : "inactive",
-        },
+        `${SERVER_URL}/user/add-patient`,
+        patientData,
         {
           headers: { "Content-Type": "application/json" },
         }
       );
-
+      
+      console.log("Add Patient Response:", response.data);
       if (response.data.success) {
-        // Refresh the patient list
-        setTableData([...tableData, response.data.patient]);
+        // Refresh the patient list instead of manually adding to the table
+        // This ensures we have the correct data format returned from the server
+        const refreshResp = await axios.get(
+          `${SERVER_URL}/user/patients/${HOSPITAL}?status=${selectedCategory.toLowerCase()}&page=${pageNumber}&size=${pageSize}&search=${search}`,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        
+        if (refreshResp.data.success) {
+          setTableData(refreshResp.data.patients || []);
+        }
+        
+        // Reset form and close modal
         setIsAddModalOpen(false);
-        // Reset form
         setNewPatient({
           name: "",
           age: "",
-          gender: "Male",
-          dob: "",
           phoneNumber: "",
-          email: "",
           address: "",
-          notes: "",
+          hospital: HOSPITAL,
+          isactive: true,
+          fields: {},
         });
+        
+        alert("Patient added successfully!");
       } else {
         alert("Failed to add patient: " + response.data.message);
       }
     } catch (error) {
       console.error("Error adding patient:", error);
-      alert("An error occurred while adding the patient");
+      alert("An error occurred while adding the patient: " + (error.response?.data?.message || error.message));
     }
   };
-
-  console.log(tableData);
-  // Show loading state if waiting for user data
-  // if (!auth.user) {
-  //   return (
-  //     <div className="flex flex-col justify-center items-center min-h-screen">
-  //       <Loader className="w-12 h-12 text-teal-500 animate-spin mb-4" />
-  //       <p className="text-xl font-semibold text-gray-700">Loading Patients...</p>
-  //     </div>
-  //   );
-  // }
+  
+  // Open modal and fetch fields
+  const handleOpenAddModal = () => {
+    setIsAddModalOpen(true);
+    fetchFields();
+    // Reset the new patient form with the current category
+    setNewPatient({
+      name: "",
+      age: "",
+      phoneNumber: "",
+      address: "",
+      hospital: HOSPITAL,
+      isactive: selectedCategory.toLowerCase() === "active",
+      fields: {},
+    });
+  };
 
   return (
     <div className="m-2">
@@ -159,13 +200,13 @@ const ViewPatients = () => {
                   px-4 py-3
                   whitespace-nowrap
                   ${
-                    selectedCategory === "Active Treatment"
+                    selectedCategory === "active"
                       ? "bg-slate-800 text-white"
                       : "bg-transparent"
                   }
                 `}
                 type="button"
-                onClick={() => handleCategoryChange("Active Treatment")}
+                onClick={() => handleCategoryChange("active")}
               >
                 Active Treatment
               </button>
@@ -175,13 +216,13 @@ const ViewPatients = () => {
                   px-4 py-3
                   whitespace-nowrap
                   ${
-                    selectedCategory === "Inactive Treatment"
+                    selectedCategory === "Inactive"
                       ? "bg-slate-800 text-white"
                       : "bg-transparent"
                   }
                 `}
                 type="button"
-                onClick={() => handleCategoryChange("Inactive Treatment")}
+                onClick={() => handleCategoryChange("Inactive")}
               >
                 Inactive Treatment
               </button>
@@ -191,7 +232,7 @@ const ViewPatients = () => {
               <button
                 className="rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none ml-2"
                 type="button"
-                onClick={() => setIsAddModalOpen(true)}
+                onClick={handleOpenAddModal}
               >
                 + Add Patient
               </button>
@@ -208,11 +249,14 @@ const ViewPatients = () => {
                 tableData={tableData}
                 setSelectedPatient={setSelectedPatient}
               />
+              
+              {/* Pagination controls could be added here */}
+              
             </>
           )}
         </div>
       ) : (
-        <Patient id={selectedPatient} setSelectedPatient={setSelectedPatient} />
+        <Patient id={selectedPatient}/>
       )}
 
       {/* Add Patient Modal */}
@@ -228,7 +272,37 @@ const ViewPatients = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-700 font-semibold mb-1">
-                Patient Name
+                Consult Date
+              </label>
+              <input
+                type="date"
+                name="consultdate"
+                value={newPatient.consultdate}
+                onChange={handleInputChange}
+                className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                // placeholder="Enter Consult date"
+                required
+                // disabled
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 font-semibold mb-1">
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                name="dateofbirth"
+                value={newPatient.dateofbirth}
+                onChange={handleInputChange}
+                className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                // placeholder="Enter Consult date"
+                required
+                // disabled
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 font-semibold mb-1">
+                Patient Name*
               </label>
               <input
                 type="text"
@@ -237,6 +311,7 @@ const ViewPatients = () => {
                 onChange={handleInputChange}
                 className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 placeholder="Enter patient name"
+                required
               />
             </div>
             <div>
@@ -255,35 +330,7 @@ const ViewPatients = () => {
 
             <div>
               <label className="block text-gray-700 font-semibold mb-1">
-                Gender
-              </label>
-              <select
-                name="gender"
-                value={newPatient.gender}
-                onChange={handleInputChange}
-                className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-semibold mb-1">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                name="dob"
-                value={newPatient.dob}
-                onChange={handleInputChange}
-                className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-1">
-                Phone Number
+                Phone Number*
               </label>
               <input
                 type="tel"
@@ -292,21 +339,23 @@ const ViewPatients = () => {
                 onChange={handleInputChange}
                 className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 placeholder="Enter phone number"
+                required
               />
             </div>
             <div>
               <label className="block text-gray-700 font-semibold mb-1">
-                Email
+                Hospital
               </label>
               <input
-                type="email"
-                name="email"
-                value={newPatient.email}
-                onChange={handleInputChange}
-                className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                placeholder="Enter email address"
+                type="text"
+                name="hospital"
+                value={HOSPITAL}
+                disabled
+                className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-gray-100"
+                placeholder="Hospital"
               />
             </div>
+            
           </div>
 
           {/* Contact Info */}
@@ -333,29 +382,45 @@ const ViewPatients = () => {
                 Treatment Category
               </label>
               <select
-                name="status"
+                name="isactive"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
               >
-                <option value="Active Treatment">Active Treatment</option>
-                <option value="Inactive Treatment">Inactive Treatment</option>
+                <option value="active">Active Treatment</option>
+                <option value="Inactive">Inactive Treatment</option>
               </select>
             </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-1">
-                Medical History / Notes
-              </label>
-              <textarea
-                rows={3}
-                name="notes"
-                value={newPatient.notes}
-                onChange={handleInputChange}
-                className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                placeholder="Any important notes or history..."
-              />
-            </div>
           </div>
+
+          {/* Dynamic Fields */}
+          {fields.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {fields.map((fieldName) => (
+                <div key={fieldName}>
+                  <label className="block text-gray-700 font-semibold mb-1 capitalize">
+                    {fieldName}
+                  </label>
+                  <input
+                    type="text"
+                    name={fieldName}
+                    value={newPatient.fields?.[fieldName] || ""}
+                    onChange={(e) =>
+                      setNewPatient((prev) => ({
+                        ...prev,
+                        fields: {
+                          ...prev.fields,
+                          [fieldName]: e.target.value,
+                        },
+                      }))
+                    }
+                    className="w-full p-2 border-b-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    placeholder={`Enter ${fieldName}`}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </Modal>
     </div>

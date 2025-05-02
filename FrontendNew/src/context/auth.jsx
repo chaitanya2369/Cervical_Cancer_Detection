@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       token: "",
       user:null,
     });
-    Cookies.remove("jwtToken"); // Remove token from cookies
+    Cookies.remove("auth"); // Remove token from cookies
   };
 
   return (
