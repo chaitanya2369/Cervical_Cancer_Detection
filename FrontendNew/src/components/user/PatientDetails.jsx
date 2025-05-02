@@ -1,128 +1,224 @@
-import React, { useState } from "react";
-// import PagesHeader from "../general/PagesHeader";
-import Modal from "../general/Modal"; // Adjust path as needed
+import React, { useState, useEffect } from "react";
+import Modal from "../general/Modal";
+import axios from "axios";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
-const PatientDetails = () => {
-  // State for patient data
-  const [patientData, setPatientData] = useState({
-    contactInfo: {
-      phone: "+91 8125455369",
-      address: "Sheelanagar, Visakhapatnam, AndhraPradesh",
-    },
-    generalInfo: {
-      name: "Caren G. Simpson",
-      consultDate: "07-04-2025",
-      patientID: "CC1520",
-      age: "35 years old",
-      dateOfBirth: "15-06-1985",
-      status: "Active",
-      image: "/images/review1.png", // Ensure this path is correct in your public/images folder
-    },
-    patientNotes: [
-      {
-        date: "Jun 8, 2027, 4:45 PM",
-        note: "Asthma - Ensure the patient always carries an inhaler and avoids allergy triggers.",
-      },
-      {
-        date: "Apr 9, 2028, 9:15 AM",
-        note: "Hypertension - Advise the patient to engage in light exercise and monitor blood pressure weekly.",
-      },
-      {
-        date: "Oct 10, 2027, 2:30 PM",
-        note: "Type 2 Diabetes - Patient needs to monitor blood sugar levels regularly & follow the recommended diet.",
-      },
-    ],
-    medicalInfo: {
-      lastUpdated: "15 Jun 2028, 10:45 AM",
-      bodyHeight: "5 ft 1.5 in",
-      bodyWeight: "140 lbs",
-      bodyMassIndex: "13 lbs",
-      heartRate: "72 bpm",
-      bloodPressure: "120/80 mmHg",
-      bloodSugar: "90 mg/dL",
-    },
-  });
+// Import Lucide icons
+import {
+  User,
+  CalendarDays,
+  Ruler,
+  Weight,
+  Activity,
+  HeartPulse,
+  Droplets,
+  FileText,
+  MapPin,
+  Phone,
+} from "lucide-react";
 
-  // State for edit modal
+const SERVER_URL = import.meta.env.VITE_API_URL;
+
+const PatientDetails = ({ id }) => {
+  const [patientData, setPatientData] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editedData, setEditedData] = useState({ ...patientData });
+  const [editedData, setEditedData] = useState(null);
 
-  // Handle input changes for general and contact info
-  const handleInputChange = (section, field, value) => {
+  // Fetch patient data
+  useEffect(() => {
+    const fetchPatientDetails = async () => {
+      try {
+        const response = await axios.get(`${SERVER_URL}/user/get-patient/${id}`);
+        console.log("Fetched Data:", response.data.patient);
+        if(response.data.success) {
+         
+          // Transform backend response to match PATCH payload
+          const fetchedData = {
+            _id: response.data.patient.ID,
+            name: response.data.patient.Name,
+            age: response.data.patient.Age,
+            phoneNumber: response.data.patient.PhoneNumber,
+            address: response.data.patient.Address,
+            consultdate: response.data.patient.ConsultDate,
+            dateofbirth: response.data.patient.DateOfBirth,
+            isactive: response.data.patient.IsActive,
+            hospital: response.data.patient.Hospital,
+            fields: {
+            ...response.data.patient.fields,
+            // Remove duplicate Blood Sugar, keep BloodSugar
+            BloodSugar: response.data.patient.fields.BloodSugar || response.data.patient.fields["Blood Sugar"],
+            "Blood Sugar": undefined,
+          },
+          notes: response.data.patient.Notes.map((note) => ({
+            note: note.note,
+            insertedat: note.insertedat, // Keep as string
+          })),
+        };
+        setPatientData(fetchedData);
+      }
+      } catch (error) {
+        console.error("Error fetching patient data:", error);
+        alert("Error fetching patient data: " + (error.message || "Unknown error"));
+      }
+    };
+    
+    if (id) {
+      fetchPatientDetails();
+    }
+  }, [id]);
+  
+  console.log("patientData:",patientData)
+  // Initialize editedData
+  useEffect(() => {
+    if (patientData) {
+      setEditedData({ ...patientData });
+    }
+  }, [patientData]);
+
+  // Handle input changes for top-level fields
+  const handleInputChange = (field, value) => {
     setEditedData((prev) => ({
       ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
-    }));
-  };
-
-  // Handle note changes
-  const handleNoteChange = (index, field, value) => {
-    const updatedNotes = [...editedData.patientNotes];
-    updatedNotes[index] = { ...updatedNotes[index], [field]: value };
-    setEditedData((prev) => ({
-      ...prev,
-      patientNotes: updatedNotes,
+      [field]: value,
     }));
   };
 
   // Handle medical info changes
   const handleMedicalInfoChange = (field, value) => {
+    setEditedData((prev) => {
+      const newFields = { ...prev.fields, [field]: value };
+      // Calculate BMI if Height or Weight changes
+      if (field === "Height" || field === "Weight") {
+        const height = field === "Height" ? parseFloat(value) : parseFloat(prev.fields.Height);
+        const weight = field === "Weight" ? parseFloat(value) : parseFloat(prev.fields.Weight);
+        newFields.BMI = height && weight ? (weight / ((height / 100) * (height / 100))).toFixed(2) : "N/A";
+      }
+      return { ...prev, fields: newFields };
+    });
+  };
+
+  // Handle Blood Pressure changes
+  const handleBloodPressureChange = (value) => {
     setEditedData((prev) => ({
       ...prev,
-      medicalInfo: {
-        ...prev.medicalInfo,
-        [field]: value,
-      },
+      fields: { ...prev.fields, BP: value },
     }));
   };
 
-  // Save edited data
-  const handleSave = () => {
-    setPatientData(editedData);
-    setIsEditModalOpen(false);
+  // Format date for display
+  const formatDate = (dateStr) => {
+    if (!dateStr || dateStr === "N/A") return "N/A";
+    const date = new Date(dateStr);
+    return date
+      .toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .split("/")
+      .join("-");
   };
 
-  // Open edit modal with current data
+  // Save edited data
+  const handleSave = async () => {
+    if (!editedData) return;
+
+    // Validation
+    if (!editedData.name) {
+      alert("Please enter a valid name.");
+      return;
+    }
+    if (!editedData.age || parseInt(editedData.age) < 0) {
+      alert("Please enter a valid age.");
+      return;
+    }
+    if (!editedData.phoneNumber || !/^\d{10}$/.test(editedData.phoneNumber)) {
+      alert("Please enter a valid 10-digit phone number.");
+      return;
+    }
+    if (!editedData.fields.Height || parseInt(editedData.fields.Height) <= 0) {
+      alert("Please enter a valid body height.");
+      return;
+    }
+    if (!editedData.fields.Weight || parseInt(editedData.fields.Weight) <= 0) {
+      alert("Please enter a valid body weight.");
+      return;
+    }
+    if (!editedData.fields.BP || !/^\d+\/\d+$/.test(editedData.fields.BP)) {
+      alert("Please enter a valid blood pressure (e.g., 120/89).");
+      return;
+    }
+    if (
+      editedData.fields.BloodSugar &&
+      editedData.fields.BloodSugar !== "N/A" &&
+      !/^\d+$/.test(editedData.fields.BloodSugar)
+    ) {
+      alert("Please enter a valid blood sugar value (number or N/A).");
+      return;
+    }
+    if (
+      editedData.fields["Blood Group"] &&
+      !/^(A\+|A\-|B\+|B\-|O\+|O\-|AB\+|AB\-)$/.test(editedData.fields["Blood Group"])
+    ) {
+      alert("Please enter a valid blood group (e.g., A+, B-, O+).");
+      return;
+    }
+
+    // Prepare data for API, exclude _ui
+    const { _ui, ...dataToSend } = editedData;
+
+    try {
+      const response = await axios.patch(`${SERVER_URL}/user/edit-patient/${id}`, dataToSend);
+      if (response.status === 200) {
+        setPatientData(editedData);
+        setIsEditModalOpen(false);
+        alert("Patient data updated successfully!");
+      } else {
+        throw new Error("Failed to update patient data");
+      }
+    } catch (error) {
+      console.error("Error updating patient data:", error);
+      alert("Error updating patient data: " + (error.message || "Unknown error"));
+    }
+  };
+
+  // Open edit modal
   const handleEditClick = () => {
-    setEditedData({ ...patientData });
     setIsEditModalOpen(true);
   };
 
+  if (!patientData) {
+    return <div className="text-center text-gray-600">Loading...</div>;
+  }
+
+  const displayBP = patientData.fields?.BP || "N/A";
+  
   return (
     <>
-      {/* <Header backText="Patients" title="Patient Details" /> */}
       <div className="bg-white shadow-md p-6">
         {/* Patient Header */}
         <div className="flex items-center justify-between bg-gray-100 p-4 rounded-lg mb-6">
           <div className="flex items-center space-x-4">
             <div className="w-14 h-14 bg-gray-300 rounded-md flex items-center justify-center overflow-hidden">
-              {patientData.generalInfo.image ? (
+              {true ? (
                 <img
-                  src={patientData.generalInfo.image}
-                  alt={`${patientData.generalInfo.name}'s profile`}
+                  src="/images/review1.png"
+                  alt={`${patientData.name}'s profile`}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-lg">
-                  {patientData.generalInfo.name.charAt(0)}
-                </span>
+                <span className="text-lg">{patientData.name.charAt(0)}</span>
               )}
             </div>
             <div>
-              <h2 className="text-xl font-bold">
-                {patientData.generalInfo.name}
-              </h2>
-              <p className="text-sm text-gray-600">
-                Patient ID: {patientData.generalInfo.patientID}
-              </p>
+              <h2 className="text-xl font-bold">{patientData.name}</h2>
+              <p className="text-sm text-gray-600">Patient ID: {patientData._id}</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
             <span className="inline-block bg-teal-500 text-white text-xs px-2 py-1 rounded-full">
-              {patientData.generalInfo.status}
+              {patientData.isactive ? "Active" : "Inactive"}
             </span>
             <button
               onClick={handleEditClick}
@@ -135,183 +231,102 @@ const PatientDetails = () => {
 
         <div className="flex items-start space-x-6">
           <div className="w-2/3">
-            {/* General Info (Top) */}
+            {/* General Info */}
             <div className="flex mb-6">
               <div className="bg-gray-50 p-4 rounded-lg w-1/2 mr-2">
                 <h3 className="text-lg font-medium mb-4">General Info</h3>
                 <p>
                   <strong>Consult Date: </strong>
                   <br />
-                  {patientData.generalInfo.consultDate}
+                  {formatDate(patientData.consultdate)}
                 </p>
                 <p>
                   <strong>Age</strong>
                   <br />
-                  {patientData.generalInfo.age}
+                  {patientData.age}
                 </p>
                 <p>
                   <strong>Phone Number</strong>
                   <br />
-                  {patientData.contactInfo.phone}
+                  {patientData.phoneNumber}
                 </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg w-1/2 ml-2">
                 <p>
                   <strong>Date of Birth</strong>
                   <br />
-                  {patientData.generalInfo.dateOfBirth}
+                  {formatDate(patientData.dateofbirth)}
                 </p>
                 <p>
                   <strong>Address</strong>
                   <br />
-                  {patientData.contactInfo.address}
+                  {patientData.address}
                 </p>
               </div>
             </div>
 
-            {/* Medical Info (Bottom) */}
+            {/* Medical Info */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-medium mb-4">Medical Info</h3>
               <p className="text-sm text-gray-500 mb-2">
-                Last Updated on {patientData.medicalInfo.lastUpdated}{" "}
+                Last Updated on {formatDate(patientData.ConsultDate)}
                 <span className="ml-2">...</span>
               </p>
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-teal-50 p-3 rounded-lg flex items-center space-x-3 border border-teal-100 shadow-sm hover:shadow-md transition-shadow">
-                  <svg
-                    className="w-6 h-6 text-teal-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M4 6h16M4 12h16m-7 6h7"
-                    />
-                  </svg>
+                  <Ruler className="w-6 h-6 text-teal-600" />
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">
-                      Body Height
-                    </p>
+                    <p className="text-sm text-gray-600 font-semibold">Body Height</p>
+                    <p className="text-lg font-bold text-teal-800">{patientData.fields.Height} cm</p>
+                  </div>
+                </div>
+                <div className="bg-teal-50 p-3 rounded-lg flex items-center space-x-3 border border-teal-100 shadow-sm hover:shadow-md transition-shadow">
+                  <Weight className="w-6 h-6 text-teal-600" />
+                  <div>
+                    <p className="text-sm text-gray-600 font-semibold">Body Weight</p>
+                    <p className="text-lg font-bold text-teal-800">{patientData.fields.Weight} kgs</p>
+                  </div>
+                </div>
+                <div className="bg-teal-50 p-3 rounded-lg flex items-center space-x-3 border border-teal-100 shadow-sm hover:shadow-md transition-shadow">
+                  <Activity className="w-6 h-6 text-teal-600" />
+                  <div>
+                    <p className="text-sm text-gray-600 font-semibold">Body Mass Index</p>
                     <p className="text-lg font-bold text-teal-800">
-                      {patientData.medicalInfo.bodyHeight}
+                      {patientData.fields?.BMI || "N/A"} Kg/m²
                     </p>
                   </div>
                 </div>
                 <div className="bg-teal-50 p-3 rounded-lg flex items-center space-x-3 border border-teal-100 shadow-sm hover:shadow-md transition-shadow">
-                  <svg
-                    className="w-6 h-6 text-teal-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <HeartPulse className="w-6 h-6 text-teal-600" />
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">
-                      Body Weight
-                    </p>
+                    <p className="text-sm text-gray-600 font-semibold">SpO2</p>
                     <p className="text-lg font-bold text-teal-800">
-                      {patientData.medicalInfo.bodyWeight}
+                      {patientData.fields?.SOP2 || "N/A"} bpm
                     </p>
                   </div>
                 </div>
                 <div className="bg-teal-50 p-3 rounded-lg flex items-center space-x-3 border border-teal-100 shadow-sm hover:shadow-md transition-shadow">
-                  <svg
-                    className="w-6 h-6 text-teal-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  <Activity className="w-6 h-6 text-teal-600" />
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">
-                      Body Mass Index
-                    </p>
+                    <p className="text-sm text-gray-600 font-semibold">Blood Pressure</p>
+                    <p className="text-lg font-bold text-teal-800">{displayBP} mmHg</p>
+                  </div>
+                </div>
+                <div className="bg-teal-50 p-3 rounded-lg flex items-center space-x-3 border border-teal-100 shadow-sm hover:shadow-md transition-shadow">
+                  <Droplets className="w-6 h-6 text-teal-600" />
+                  <div>
+                    <p className="text-sm text-gray-600 font-semibold">Blood Sugar</p>
                     <p className="text-lg font-bold text-teal-800">
-                      {patientData.medicalInfo.bodyMassIndex}
+                      {patientData.fields?.BloodSugar || "N/A"}
                     </p>
                   </div>
                 </div>
                 <div className="bg-teal-50 p-3 rounded-lg flex items-center space-x-3 border border-teal-100 shadow-sm hover:shadow-md transition-shadow">
-                  <svg
-                    className="w-6 h-6 text-teal-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A3.72 3.72 0 0023 3z"
-                    />
-                  </svg>
+                  <User className="w-6 h-6 text-teal-600" />
                   <div>
-                    <p className="text-sm text-gray-600 font-semibold">
-                      Heart Rate
-                    </p>
+                    <p className="text-sm text-gray-600 font-semibold">Blood Group</p>
                     <p className="text-lg font-bold text-teal-800">
-                      {patientData.medicalInfo.heartRate}
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-teal-50 p-3 rounded-lg flex items-center space-x-3 border border-teal-100 shadow-sm hover:shadow-md transition-shadow">
-                  <svg
-                    className="w-6 h-6 text-teal-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M20 12H4"
-                    />
-                  </svg>
-                  <div>
-                    <p className="text-sm text-gray-600 font-semibold">
-                      Blood Pressure
-                    </p>
-                    <p className="text-lg font-bold text-teal-800">
-                      {patientData.medicalInfo.bloodPressure}
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-teal-50 p-3 rounded-lg flex items-center space-x-3 border border-teal-100 shadow-sm hover:shadow-md transition-shadow">
-                  <svg
-                    className="w-6 h-6 text-teal-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                  <div>
-                    <p className="text-sm text-gray-600 font-semibold">
-                      Blood Sugar
-                    </p>
-                    <p className="text-lg font-bold text-teal-800">
-                      {patientData.medicalInfo.bloodSugar}
+                      {patientData.fields?.["Blood Group"] || "N/A"}
                     </p>
                   </div>
                 </div>
@@ -319,20 +334,25 @@ const PatientDetails = () => {
             </div>
           </div>
           <div className="w-1/3">
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-gray-50 p-4 rounded-lg h-full flex flex-col">
               <h3 className="text-lg font-medium mb-4">Patient Notes</h3>
-              <div className="space-y-4 flex flex-col">
-                {patientData.patientNotes.map((note, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-100 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-300"
-                  >
-                    <p className="text-sm text-gray-700 font-medium">
-                      {note.date}
-                    </p>
-                    <p className="text-gray-900 mt-2">{note.note}</p>
-                  </div>
-                ))}
+              <div className="space-y-4 flex flex-col overflow-y-auto max-h-96 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                {patientData.notes && patientData.notes.length > 0 ? (
+                  patientData.notes.map((note, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-100 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-300"
+                    >
+                      <div className="flex items-center mb-2">
+                        <FileText className="w-5 h-5 text-gray-600 mr-2" />
+                        <span className="text-xs text-gray-500">{formatDate(note.insertedat)}</span>
+                      </div>
+                      <p className="text-gray-900">{note.note || "No note content"}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No notes available</p>
+                )}
               </div>
             </div>
           </div>
@@ -340,149 +360,207 @@ const PatientDetails = () => {
       </div>
 
       {/* Edit Data Modal */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSave={handleSave}
-        title="Edit Patient Data"
-      >
-        <div className="space-y-4">
-          {/* General Info */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Name</label>
-            <input
-              type="text"
-              value={editedData.generalInfo.name}
-              onChange={(e) =>
-                handleInputChange("generalInfo", "name", e.target.value)
-              }
-              className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Consult Date
-            </label>
-            <input
-              type="text"
-              value={editedData.generalInfo.consultDate}
-              onChange={(e) =>
-                handleInputChange("generalInfo", "consultDate", e.target.value)
-              }
-              className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Age</label>
-            <input
-              type="text"
-              value={editedData.generalInfo.age}
-              onChange={(e) =>
-                handleInputChange("generalInfo", "age", e.target.value)
-              }
-              className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Date of Birth
-            </label>
-            <input
-              type="text"
-              value={editedData.generalInfo.dateOfBirth}
-              onChange={(e) =>
-                handleInputChange("generalInfo", "dateOfBirth", e.target.value)
-              }
-              className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Status
-            </label>
-            <input
-              type="text"
-              value={editedData.generalInfo.status}
-              onChange={(e) =>
-                handleInputChange("generalInfo", "status", e.target.value)
-              }
-              className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Phone
-            </label>
-            <input
-              type="text"
-              value={editedData.contactInfo.phone}
-              onChange={(e) =>
-                handleInputChange("contactInfo", "phone", e.target.value)
-              }
-              className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Address
-            </label>
-            <input
-              type="text"
-              value={editedData.contactInfo.address}
-              onChange={(e) =>
-                handleInputChange("contactInfo", "address", e.target.value)
-              }
-              className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          {/* Medical Info */}
-          {Object.keys(editedData.medicalInfo)
-            .filter((key) => key !== "lastUpdated")
-            .map((key) => (
-              <div key={key}>
-                <label className="block text-gray-700 font-medium mb-1 capitalize">
-                  {key.replace(/([A-Z])/g, " $1").trim()}
+      {isEditModalOpen && editedData && (
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title="Edit Patient Data"
+          onSave={handleSave}
+        >
+          <div className="p-6">
+            <h4 className="text-lg font-medium mb-4 flex items-center">
+              <User className="w-5 h-5 mr-2 text-teal-600" />
+              General Information
+            </h4>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <User className="w-4 h-4 mr-1 text-teal-600" />
+                  Name
                 </label>
                 <input
                   type="text"
-                  value={editedData.medicalInfo[key]}
-                  onChange={(e) => handleMedicalInfoChange(key, e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={editedData.name || ""}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter name"
                 />
               </div>
-            ))}
-
-          {/* Patient Notes */}
-          {editedData.patientNotes.map((note, index) => (
-            <div key={index} className="space-y-2">
-              <label className="block text-gray-700 font-medium mb-1">
-                Note {index + 1} Date
-              </label>
-              <input
-                type="text"
-                value={note.date}
-                onChange={(e) =>
-                  handleNoteChange(index, "date", e.target.value)
-                }
-                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <label className="block text-gray-700 font-medium mb-1">
-                Note {index + 1} Text
-              </label>
-              <textarea
-                value={note.note}
-                onChange={(e) =>
-                  handleNoteChange(index, "note", e.target.value)
-                }
-                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <CalendarDays className="w-4 h-4 mr-1 text-teal-600" />
+                  Consult Date
+                </label>
+                <DatePicker
+                  selected={
+                    editedData.consultdate && editedData.consultdate !== "N/A"
+                      ? new Date(editedData.consultdate)
+                      : null
+                  }
+                  onChange={(date) => handleInputChange("consultdate", date ? date.toISOString() : "N/A")}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholderText="Select date"
+                  dateFormat="dd-MM-yyyy"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <User className="w-4 h-4 mr-1 text-teal-600" />
+                  Age
+                </label>
+                <input
+                  type="number"
+                  value={editedData.age || ""}
+                  onChange={(e) => handleInputChange("age", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter age"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <Phone className="w-4 h-4 mr-1 text-teal-600" />
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  value={editedData.phoneNumber || ""}
+                  onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter phone number"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <CalendarDays className="w-4 h-4 mr-1 text-teal-600" />
+                  Date of Birth
+                </label>
+                <DatePicker
+                  selected={
+                    editedData.dateofbirth && editedData.dateofbirth !== "N/A"
+                      ? new Date(editedData.dateofbirth)
+                      : null
+                  }
+                  onChange={(date) => handleInputChange("dateofbirth", date ? date.toISOString() : "N/A")}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholderText="Select date"
+                  dateFormat="dd-MM-yyyy"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <MapPin className="w-4 h-4 mr-1 text-teal-600" />
+                  Address
+                </label>
+                <input
+                  type="text"
+                  value={editedData.address || ""}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter address"
+                />
+              </div>
             </div>
-          ))}
-        </div>
-      </Modal>
+
+            <h4 className="text-lg font-medium mb-4 flex items-center">
+              <HeartPulse className="w-5 h-5 mr-2 text-teal-600" />
+              Medical Information
+            </h4>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <Ruler className="w-4 h-4 mr-1 text-teal-600" />
+                  Height (cm)
+                </label>
+                <input
+                  type="number"
+                  value={editedData.fields?.Height || ""}
+                  onChange={(e) => handleMedicalInfoChange("Height", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter height"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <Weight className="w-4 h-4 mr-1 text-teal-600" />
+                  Weight (kg)
+                </label>
+                <input
+                  type="number"
+                  value={editedData.fields?.Weight || ""}
+                  onChange={(e) => handleMedicalInfoChange("Weight", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter weight"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <Activity className="w-4 h-4 mr-1 text-teal-600" />
+                  Body Mass Index (Kg/m²)
+                </label>
+                <input
+                  type="text"
+                  value={editedData.fields?.BMI || "N/A"}
+                  disabled
+                  className="w-full p-2 border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
+                  placeholder="Calculated"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <HeartPulse className="w-4 h-4 mr-1 text-teal-600" />
+                  SpO2 (bpm)
+                </label>
+                <input
+                  type="number"
+                  value={editedData.fields?.SOP2 || ""}
+                  onChange={(e) => handleMedicalInfoChange("SOP2", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter SpO2"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <Activity className="w-4 h-4 mr-1 text-teal-600" />
+                  Blood Pressure (mmHg)
+                </label>
+                <input
+                  type="text"
+                  value={editedData.fields?.BP || ""}
+                  onChange={(e) => handleBloodPressureChange(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="e.g., 120/89"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <Droplets className="w-4 h-4 mr-1 text-teal-600" />
+                  Blood Sugar
+                </label>
+                <input
+                  type="text"
+                  value={editedData.fields?.BloodSugar || ""}
+                  onChange={(e) => handleMedicalInfoChange("BloodSugar", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="Enter blood sugar"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center">
+                  <User className="w-4 h-4 mr-1 text-teal-600" />
+                  Blood Group
+                </label>
+                <input
+                  type="text"
+                  value={editedData.fields?.["Blood Group"] || ""}
+                  onChange={(e) => handleMedicalInfoChange("Blood Group", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500"
+                  placeholder="e.g., A+, B-, O+"
+                />
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </>
   );
 };

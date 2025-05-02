@@ -1,25 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/auth";
 
 const Header = ({ backText = "Back", title = "Patient Details" }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const handleBackClick = () => {
-    navigate(-1);
-  };
-
-  const handleLogout = () => {
-    -1;
-    console.log("Logout clicked");
-    navigate("/login");
-  };
-
-  const handleViewProfile = () => {
-    console.log("View Profile clicked");
-    navigate("/user/profile");
-  };
+  const { auth,loading,logout } = useAuth(); 
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -31,33 +19,35 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+  
+  if (loading){
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  } // or a loading spinner
+  const user = auth.user; // Assuming auth.user contains the user data
+
+  // const handleBackClick = () => {
+  //   navigate(-1);
+  // };
+
+  const handleLogout = () => {
+    // -1;
+    console.log("Logout clicked");
+    logout(); // Call the logout function from the auth context
+    navigate("/login");
+  };
+
+  const handleViewProfile = () => {
+    console.log("View Profile clicked");
+    navigate("/user/profile");
+  };
+
+
+
 
   return (
     <header className="bg-transparent p-4 flex items-center justify-between">
-      {/* Left Section - Dynamic Back Button */}
-      {/* <div className="flex items-center space-x-2">
-        <button
-          onClick={handleBackClick}
-          className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          <svg
-            className="w-5 h-5 mr-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          <span className="text-sm font-medium">{backText}</span>
-        </button>
-      </div> */}
+      {/* Left Section - Back Button */}
 
-      {/* Center Section - Title */}
       <div className="text-center">
         <h1 className="text-xl font-bold text-gray-800">{title}</h1>
       </div>
@@ -76,7 +66,7 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
             />
             <div className="flex  items-center space-x-1">
               <span className="text-sm font-medium text-gray-700">
-                Alfredo Westervelt
+                {user.Name}
               </span>
               <svg
                 className="w-4 h-4 text-gray-600"

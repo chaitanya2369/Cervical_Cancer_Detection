@@ -17,7 +17,7 @@ const PatientsTable = ({ tableData, setSelectedPatient }) => {
       <table className="w-full divide-y divide-gray-200 rounded-xl overflow-hidden border">
         <thead className="bg-teal-500 text-white">
           <tr>
-            <th className="px-6 py-3 text-left text-md font-medium">ID</th>
+            <th className="px-6 py-3 text-left text-md font-medium">Patient ID</th>
             <th className="px-6 py-3 text-left text-md font-medium">Name</th>
             <th className="px-6 py-3 text-left text-md font-medium">Phone Number</th>
             <th className="px-6 py-3 text-left text-md font-medium">Status</th>
