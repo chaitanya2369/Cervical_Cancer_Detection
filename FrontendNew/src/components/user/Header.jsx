@@ -9,14 +9,25 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
 
   const { auth,loading,logout } = useAuth(); 
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  
   if (loading){
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   } // or a loading spinner
   const user = auth.user; // Assuming auth.user contains the user data
 
-  const handleBackClick = () => {
-    navigate(-1);
-  };
+  // const handleBackClick = () => {
+  //   navigate(-1);
+  // };
 
   const handleLogout = () => {
     // -1;
@@ -30,22 +41,9 @@ const Header = ({ backText = "Back", title = "Patient Details" }) => {
     navigate("/user/profile");
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
-    console.log(user);
 
-    if(!user) {
-      return <div className="flex justify-center items-center h-screen">Loading...</div>;
-    } // or a loading spinner
   return (
     <header className="bg-transparent p-4 flex items-center justify-between">
       {/* Left Section - Back Button */}

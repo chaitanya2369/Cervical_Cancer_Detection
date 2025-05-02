@@ -8,8 +8,12 @@ import axios from "axios";
 const SERVER_URL = import.meta.env.VITE_API_URL;
 
 const Profile = () => {
-  const { auth } = useAuth();
+  const { auth,setAuth,loading,updateCookies } = useAuth();
   const navigate = useNavigate();
+
+  if(loading){
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  } // or a loading spinner
 
   const [userData, setUserData] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -22,7 +26,7 @@ const Profile = () => {
   });
   const [error, setError] = useState("");
   const [previewImage, setPreviewImage] = useState("/images/review1.png");
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
   // Redirect if user is not logged in and setup initial data
   useEffect(() => {
@@ -35,6 +39,7 @@ const Profile = () => {
         Name: auth.user.Name,
         Email: auth.user.Email,
         Hospital: auth.user.Hospital,
+        Password: auth.user.Password,
         Status: auth.user.Status,
         canTrain: auth.user.CanTrain || false,
         canPredict: auth.user.CanPredict || false,
@@ -45,11 +50,11 @@ const Profile = () => {
         setPreviewImage(auth.user.profileImage);
       }
 
-      const timer = setTimeout(() => {
-        setLoading(false);
-      }, 1000);
+      // const timer = setTimeout(() => {
+      //   setLoading(false);
+      // }, 1000);
 
-      return () => clearTimeout(timer);
+      // return () => clearTimeout(timer);
     }
   }, [auth.user, navigate]);
 
@@ -93,7 +98,16 @@ const Profile = () => {
   
     try {
       const response = await axios.put(`${SERVER_URL}/user/edit-details`,editedData);
-      if (response.status === 200) {
+      if (response.data.success) {
+        setAuth((prev) => ({
+          ...prev,
+          user: {...response.data.user },
+        }));
+        updateCookies({
+          user: { ...response.data.user },
+          role: auth.role,
+          token: auth.token,
+        });
         setUserData(editedData);
         setIsEditModalOpen(false);
         alert("Profile updated successfully!");
@@ -130,7 +144,7 @@ const Profile = () => {
     setIsPasswordModalOpen(false);
     setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
   };
-  console.log(editedData)
+  console.log(userData)
   return (
     <div className="m-6">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
