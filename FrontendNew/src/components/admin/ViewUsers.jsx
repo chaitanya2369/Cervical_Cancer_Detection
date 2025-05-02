@@ -3,8 +3,20 @@ import SearchBar from "../general/SearchBar";
 import UsersTable from "./UsersTable";
 import Pagination from "../general/Pagination";
 import axios from "axios";
+import AddUserModal from "./AddOrEditUserModal";
+import { Button } from "@material-tailwind/react";
+import { Plus } from "lucide-react";
+import { useAuth } from "../../context/auth";
 
 const ViewUsers = () => {
+  const { auth, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
+  }
   const SERVER_URL = import.meta.env.VITE_API_URL;
   const [selectedCategory, setSelectedCategory] = useState("Approved");
   const [search, setSearch] = useState("");
@@ -13,7 +25,8 @@ const ViewUsers = () => {
   const [maxPages, setMaxPages] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  const [hospital, setHospital] = useState("KIMS");
+  const hospital = auth?.user?.Hospital; // Get the hospital ID from the auth context
+  console.log("hospital", hospital);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -102,15 +115,31 @@ const ViewUsers = () => {
         </div>
         <div className="flex w-full justify-end">
           <SearchBar setSearch={setSearch} />
-          <button
-            class="rounded-xl bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2"
-            type="button"
+          <AddUserModal
+            setTableData={setTableData}
+            filter={{
+              search: search,
+              size: itemsPerPage,
+              selectedCategory: selectedCategory,
+              totalItems: totalItems,
+            }}
           >
-            + Add Admin
-          </button>
+            <Button className="bg-themeBlue flex">
+              <Plus strokeWidth={3} size={16} />
+              Add User
+            </Button>
+          </AddUserModal>
         </div>
       </div>
-      <UsersTable tableData={tableData} setTableData={setTableData} />
+      <UsersTable
+        tableData={tableData}
+        setTableData={setTableData}
+        filter={{
+          search: search,
+          size: itemsPerPage,
+          selectedCategory: selectedCategory,
+        }}
+      />
       <div className="w-full flex justify-end">
         <Pagination
           currentPageNumber={pageNumber}

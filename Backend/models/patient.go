@@ -4,11 +4,6 @@ import (
 	"time"
 )
 
-type PatientNotes struct{
-	Note           string          `bson:"note"`          //Base64-encoded string later will replace with s3 url
-	InsertedAt    time.Time       `bson:"inserted_at"` 
-}
-
 type Vitals struct{
 	BP           string      `bson:"bp"`
 	Weight       string      `bson:"weight"`
@@ -21,16 +16,38 @@ type PatientFields struct {
 	Hospital      string             `bson:"hospital"`
 }
 
+type HistoryItem struct {
+	Model      string			 `bson:"model"`
+	CreatedAt  time.Time		 `bson:"createdat"`
+	Type 	   string			 `bson:"type"`
+	CellsData  interface{}       `bson:"cells_data"` 
+	Prediction interface{}	     `bson:"prediction"`
+}
+
+type PatientHistory struct {
+	ID            string             `bson:"_id,omitempty"`
+	PatientID     string             `bson:"patient_id"`
+	History       []HistoryItem      `bson:"history"`
+}
+
 type PATIENT struct {
 	ID            string             `bson:"_id,omitempty"`
 	Name          string             `bson:"name"`
 	Age           string             `bson:"age"`
 	PhoneNumber   string             `bson:"phoneNumber"`
 	Address       string             `bson:"address"`
-	IsActive      bool               `bson:"is_active"` 
+	ConsultDate   string             `bson:"consultdate"`
+	DateOfBirth   string             `bson:"dateofbirth"`
+	IsActive      bool               `bson:"isactive"` 
 	Hospital      string             `bson:"hospital"`  
 
 	Fields        map[string]interface{} `bson:"fields" json:"fields"`
 
-	Notes         []PatientNotes     `bson:"notes"`
+	Notes         []PatientNote     `bson:"notes"`
+	
+}
+
+type PatientNote struct {
+	Note              string     `json:"note"`	
+	InsertedAt        time.Time  `json:"insertedat"`
 }

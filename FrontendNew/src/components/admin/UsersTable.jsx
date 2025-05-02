@@ -1,38 +1,45 @@
 import axios from "axios";
 import { Pencil, Trash2 } from "lucide-react";
-import React from "react";
+import React, { use } from "react";
+import { Checkbox } from "@material-tailwind/react";
+import AddOrEditUserModal from "./AddOrEditUserModal";
 
-const UsersTable = ({ tableData, setTableData }) => {
+const UsersTable = ({ tableData, setTableData, filter }) => {
   const VITE_API_URL = import.meta.env.VITE_API_URL;
 
   const deleteUser = async (userId) => {
-    const resp = await axios.delete(`${VITE_API_URL}//remove-admin/${adminId}`);
+    const resp = await axios.delete(
+      `${VITE_API_URL}/admin/remove-user/${userId}`
+    );
     const data = resp.data;
     if (data.success) {
-      setTableData((prevData) =>
-        prevData.filter((item) => item.ID !== adminId)
-      );
+      setTableData((prevData) => prevData.filter((item) => item.ID !== userId));
     } else {
       console.log("Error while deleting the admin");
     }
   };
 
-  const editUser = () => {};
-
   const updateStatus = async (user, value) => {
-    setTableData((prevData) =>
-      prevData.map((item) =>
-        item.ID === user.ID ? { ...item, Status: value } : item
-      )
-    );
+    if (user.Status === value) return;
+    setTableData((prevData) => prevData.filter((item) => item.ID !== user.ID));
     user.Status = value;
     const resp = await axios.put(
-      `${VITE_API_URL}/super-admin/edit-admin/${user.ID}`,
+      `${VITE_API_URL}/admin/edit-user/${user.ID}`,
       user
     );
     if (!resp.data.success) {
       console.log("Error while updating the status");
     }
+  };
+
+  const updatePermissionsUser = async (row) => {
+    const resp = await axios.put(
+      `${VITE_API_URL}/admin/edit-user/${row.ID}`,
+      row
+    );
+    if (resp.data.sucess) {
+      return true;
+    } else false;
   };
 
   return (
@@ -84,21 +91,80 @@ const UsersTable = ({ tableData, setTableData }) => {
                   </option>
                 </select>
               </td>
-              <td></td>
-              <td></td>
-              <td className="flex px-6 py-3">
-                <Pencil
-                  size={18}
-                  strokeWidth={1.5}
-                  className="hover:cursor-pointer"
-                  onClick={() => editAdmin(row.ID)}
+              <td>
+                <Checkbox
+                  checked={row.CanPredict}
+                  color="blue"
+                  onChange={async (e) => {
+                    const updatedRow = { ...row, CanPredict: e.target.checked };
+                    const updated = await updatePermissionsUser(updatedRow);
+                    if (updated) {
+                      setTableData((prevData) =>
+                        prevData.map((item) =>
+                          item.ID === row.ID
+                            ? { ...item, CanPredict: e.target.checked }
+                            : item
+                        )
+                      );
+                    } else {
+                      setTableData((prevData) =>
+                        prevData.map((item) =>
+                          item.ID === row.ID
+                            ? { ...item, CanPredict: !e.target.checked }
+                            : item
+                        )
+                      );
+                    }
+                  }}
                 />
+              </td>
+              <td>
+                <Checkbox
+                  checked={row.CanTrain}
+                  color="blue"
+                  onChange={async (e) => {
+                    const updatedRow = { ...row, CanTrain: e.target.checked };
+                    updatePermissionsUser(updatedRow);
+                    const updated = await updatePermissionsUser(updatedRow);
+                    if (updated) {
+                      setTableData((prevData) =>
+                        prevData.map((item) =>
+                          item.ID === row.ID
+                            ? { ...item, CanTrain: e.target.checked }
+                            : item
+                        )
+                      );
+                    } else {
+                      setTableData((prevData) =>
+                        prevData.map((item) =>
+                          item.ID === row.ID
+                            ? { ...item, CanTrain: !e.target.checked }
+                            : item
+                        )
+                      );
+                    }
+                  }}
+                />
+              </td>
+              <td className="flex px-6 py-3">
+                <AddOrEditUserModal
+                  setTableData={setTableData}
+                  initialData={row}
+                  filter={filter}
+                >
+                  <Pencil
+                    size={18}
+                    strokeWidth={1.5}
+                    className="hover:cursor-pointer"
+                  />
+                </AddOrEditUserModal>
+
                 <div className="w-px bg-gray-400 mx-1"></div>
                 <Trash2
                   size={18}
                   strokeWidth={1.5}
                   className="hover:cursor-pointer"
-                  onClick={() => deleteAdmin(row.ID)}
+                  onClick={() => deleteUser(row.ID)}
                 />
               </td>
             </tr>

@@ -27,9 +27,9 @@ with open("scaler_af.pkl", "rb") as model_file:
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.get_json()
-    # print(data)
-    df = pd.DataFrame(data)
-    # print(df)
+    print(data)
+    df = pd.DataFrame(data['cells'])
+    print(df)
     df = df[features_order]
 
     df = selector_af.transform(df)

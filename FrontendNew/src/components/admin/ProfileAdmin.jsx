@@ -1,17 +1,22 @@
 import React, { useState } from "react";
 import Modal from "../general/Modal"; // Adjust path as needed
+import { useAuth } from "../../context/auth";
+import { Heading1 } from "lucide-react";
+import axios from "axios";
 
-const Profile = () => {
+const ProfileAdmin = () => {
+  const { auth, setAuth, loading, updateCookies } = useAuth();
+
+  if (loading) {
+    return <h1>Loading...</h1>; // Show loading state if needed
+  }
+  console.log("user", auth.user);
+  const SERVER_URL = import.meta.env.VITE_API_URL;
   const [userData, setUserData] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    status: "active",
-    canTrain: true,
-    canPredict: true,
-    organisation: "HealthCare Inc",
-    profileImage: "/images/review2.png", // Placeholder image path
-    lastUpdated: "1 month ago", // Simulated timestamp
+    ...auth.user,
+    profileImage: "/images/review1.png",
   });
+
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedData, setEditedData] = useState({ ...userData });
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -43,12 +48,27 @@ const Profile = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setUserData((prev) => ({
       ...prev,
       ...editedData,
       profileImage: previewImage,
     }));
+    console.log("editedData", editedData);
+    const resp = await axios.put(
+      `${SERVER_URL}/admin/edit-details`,
+      editedData
+    );
+    if (resp.data.success) {
+      console.log("Profile updated successfully:", resp.data);
+      setAuth((prev) => ({ ...prev, user: { ...resp.data.admin } }));
+      updateCookies({
+        user: { ...resp.data.admin },
+        role: auth.role,
+        token: auth.token,
+      });
+    }
+
     setIsEditMode(false);
   };
 
@@ -124,9 +144,9 @@ const Profile = () => {
             />
             <div>
               <h2 className="text-xl font-bold text-gray-800">
-                {userData.name}
+                {userData.Name}
               </h2>
-              <p className="text-gray-600">{userData.email}</p>
+              <p className="text-gray-600">{userData.Email}</p>
             </div>
           </div>
           {!isEditMode && (
@@ -147,8 +167,8 @@ const Profile = () => {
             </label>
             <input
               type="text"
-              name="name"
-              value={isEditMode ? editedData.name : userData.name}
+              name="Name"
+              value={isEditMode ? editedData.Name : userData.Name}
               onChange={handleInputChange}
               disabled={!isEditMode}
               className="w-full p-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-gray-50 disabled:bg-gray-100"
@@ -160,10 +180,8 @@ const Profile = () => {
             </label>
             <input
               type="text"
-              name="organisation"
-              value={
-                isEditMode ? editedData.organisation : userData.organisation
-              }
+              name="Hospital"
+              value={isEditMode ? editedData.Hospital : userData.Hospital}
               onChange={handleInputChange}
               disabled={!isEditMode}
               className="w-full p-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-gray-50 disabled:bg-gray-100"
@@ -195,7 +213,7 @@ const Profile = () => {
             </label>
             <div className="flex items-center space-x-2">
               <span className="w-full p-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-gray-50 disabled:bg-gray-100">
-                {userData.email}
+                {userData.Email}
               </span>
             </div>
           </div>
@@ -216,39 +234,15 @@ const Profile = () => {
               Status
             </label>
             <select
-              name="status"
-              value={isEditMode ? editedData.status : userData.status}
+              name="Status"
+              value={isEditMode ? editedData.Status : userData.Status}
               onChange={handleInputChange}
-              disabled={!isEditMode}
+              disabled={true}
               className="w-full p-2  border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-gray-50 disabled:bg-gray-100"
             >
-              <option value="active">Approved</option>
-              <option value="inactive">UnApproved</option>
+              <option value="approved">Approved</option>
+              <option value="unapproved">UnApproved</option>
             </select>
-          </div>
-          <div className="flex">
-            <div className="mr-3">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Can Train
-              </label>
-              <ToggleSwitch
-                name="canTrain"
-                checked={isEditMode ? editedData.canTrain : userData.canTrain}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-2">
-                Can Predict
-              </label>
-              <ToggleSwitch
-                name="canPredict"
-                checked={
-                  isEditMode ? editedData.canPredict : userData.canPredict
-                }
-                onChange={handleInputChange}
-              />
-            </div>
           </div>
         </div>
 
@@ -338,4 +332,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default ProfileAdmin;

@@ -3,7 +3,10 @@ import SearchBar from "../general/SearchBar";
 import AdminsTable from "./AdminsTable";
 import Pagination from "../general/Pagination";
 import axios from "axios";
-import AddAdminModal from "../admin/AddAdminModal";
+import AddAdminModal from "./AddOrEditAdminModal";
+import { useAuth } from "../../context/auth";
+import { Plus } from "lucide-react";
+import { Button } from "@material-tailwind/react";
 
 const ViewAdmins = () => {
   const SERVER_URL = import.meta.env.VITE_API_URL;
@@ -14,6 +17,7 @@ const ViewAdmins = () => {
   const [maxPages, setMaxPages] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
+  const { loading } = useAuth();
 
   useEffect(() => {
     const fetchAdmins = async () => {
@@ -45,6 +49,9 @@ const ViewAdmins = () => {
   const handleAdminClick = (e) => {
     setSelectedCategory(e.target.textContent);
   };
+  if (loading) {
+    return "loading";
+  }
   return (
     <div className="m-2">
       <div className="flex justify-between">
@@ -103,10 +110,31 @@ const ViewAdmins = () => {
         </div>
         <div className="flex w-full justify-end">
           <SearchBar setSearch={setSearch} />
-          <AddAdminModal />
+          <AddAdminModal
+            setTableData={setTableData}
+            filter={{
+              search: search,
+              size: itemsPerPage,
+              selectedCategory: selectedCategory,
+              totalItems: totalItems,
+            }}
+          >
+            <Button className="bg-themeBlue flex">
+              <Plus strokeWidth={3} size={16} />
+              Add Admin
+            </Button>
+          </AddAdminModal>
         </div>
       </div>
-      <AdminsTable tableData={tableData} setTableData={setTableData} />
+      <AdminsTable
+        tableData={tableData}
+        setTableData={setTableData}
+        filter={{
+          search: search,
+          size: itemsPerPage,
+          selectedCategory: selectedCategory,
+        }}
+      />
       <div className="w-full flex justify-end">
         <Pagination
           currentPageNumber={pageNumber}

@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from "react";
 import SideNavBar, { SideBarItem } from "../../components/general/SideNavBar";
 import { useNavigate } from "react-router-dom";
-import { LayoutDashboard, UserCircle, Settings, User } from "lucide-react";
+import {
+  LayoutDashboard,
+  UserCircle,
+  Settings,
+  User,
+  Edit,
+} from "lucide-react";
 import AdminDashboard from "../../components/admin/AdminDashboard";
 import ViewUsers from "../../components/admin/ViewUsers";
 import PagesHeader from "../../components/general/PagesHeader";
-import Profile from "../../components/SuperAdmin/Profile";
+import ProfileAdmin from "../../components/admin/ProfileAdmin";
+import AddOrEditFields from "../../components/admin/AddOrEditFields";
 
 const AdminMain = () => {
   const [activeItemId, setactiveItemId] = useState("dashboard");
@@ -25,6 +32,11 @@ const AdminMain = () => {
     },
     { id: "users", text: "Users", icon: <UserCircle size={20} /> },
     { id: "profile", text: "Profile", icon: <User size={20} /> },
+    {
+      id: "add or Edit Fields",
+      text: "Add or Edit Fields",
+      icon: <Edit size={20} />,
+    },
   ];
 
   const renderContent = () => {
@@ -33,7 +45,9 @@ const AdminMain = () => {
     } else if (activeItemId == "users") {
       return <ViewUsers />;
     } else if (activeItemId == "profile") {
-      return <Profile />;
+      return <ProfileAdmin />;
+    } else if (activeItemId == "add or Edit Fields") {
+      return <AddOrEditFields />;
     } else {
       return <h2>Select an item from the sidebar</h2>;
     }

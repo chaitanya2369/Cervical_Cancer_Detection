@@ -33,6 +33,7 @@ func GetSelectedFilterAdmins(c *gin.Context){
 
 	filter:=bson.M{}
 	filter["status"]=status
+	filter["role"] = "admin"
 	if search!=""{
 		filter["$or"] = []bson.M{
                 {"name": bson.M{"$regex": ".*" + search + ".*", "$options": "i"}},
@@ -100,14 +101,13 @@ func CreateAdmin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request", "error": err.Error()})
 		return
 	}
-
+    newAdmin.Role = "admin"
 	// Check if admin with this email already exists
 	adminCollection := db.Client.Database("db1").Collection("admins")
 	var existingAdmin models.ADMIN
 	err := adminCollection.FindOne(context.TODO(), bson.M{"email": newAdmin.Email}).Decode(&existingAdmin)
 	if err != mongo.ErrNoDocuments { // ErrNoDocuments means no admin was found
-		log.Fatal("User already exists with the same email")
-		c.JSON(http.StatusConflict, gin.H{"message": "User already exists"})
+		c.JSON(http.StatusConflict, gin.H{"message": "User already exists", "success": false})
 		return
 	}
 	
@@ -122,19 +122,19 @@ func CreateAdmin(c *gin.Context) {
 	
 	if err != nil {
 		log.Fatal("Error inserting admin: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error creating admin", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
 	err = createFieldsForHospital(newAdmin.Hospital)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
 	// Respond with success
-	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully", "admin": newAdmin})
+	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully", "admin": newAdmin, "success": true})
 }
 
 func ChangeAdminData(c *gin.Context){ //send complete user
@@ -162,7 +162,7 @@ func ChangeAdminData(c *gin.Context){ //send complete user
 	return
   }
 
-  c.JSON(http.StatusAccepted, gin.H{"success": true,"message": "Data changed"})
+  c.JSON(http.StatusAccepted, gin.H{"success": true,"message": "Data changed", "admin": admin})
 }
 
 func RemoveAdmin(c *gin.Context) {
@@ -179,3 +179,46 @@ func RemoveAdmin(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Admin deleted successfully"})
 }
+
+func EditDetails(c *gin.Context) {
+	var editedAdmin models.ADMIN
+	if err := c.ShouldBindJSON(&editedAdmin); err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	detailsCollection := db.Client.Database("db1").Collection("admins")
+	filter := bson.M{"_id": editedAdmin.ID}
+	update := bson.M{"$set": editedAdmin}
+	_, err := detailsCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Details updated successfully", "admin": editedAdmin})
+}
+
+// func ChangePassword(c *gin.Context) {
+// 	var passwordChange models.PasswordChange
+// 	if err := c.ShouldBindJSON(&passwordChange); err != nil {
+// 		log.Fatal(err)
+// 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+// 		return
+// 	}
+
+// 	adminCollection := db.Client.Database("db1").Collection("admins")
+// 	filter := bson.M{"_id": passwordChange.ID}
+// 	update := bson.M{"$set": bson.M{"password": passwordChange.NewPassword}}
+// 	_, err := adminCollection.UpdateOne(context.TODO(), filter, update)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Password changed successfully"})
+	
+// }

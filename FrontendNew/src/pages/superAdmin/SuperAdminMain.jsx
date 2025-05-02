@@ -5,7 +5,7 @@ import { LayoutDashboard, UserCircle, Settings, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ViewAdmins from "../../components/SuperAdmin/ViewAdmins";
 import PagesHeader from "../../components/general/PagesHeader";
-import Profile from "../../components/SuperAdmin/Profile";
+import Profile from "../../components/SuperAdmin/ProfileSuperAdmin";
 
 const SuperAdminMain = () => {
   const [activeItemId, setactiveItemId] = useState("dashboard");
