@@ -40,7 +40,7 @@ export default function Otp() {
   const handleResendOtp = async () => {
     if (!resendDisabled) {
       try {
-        const response = await fetch(`${apiUrl}auth/resend-otp`, {
+        const response = await fetch(`${apiUrl}/auth/resend-otp`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export default function Otp() {
     }
 
     try {
-      const response = await fetch(`${apiUrl}auth/verify-otp`, {
+      const response = await fetch(`${apiUrl}/auth/verify-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

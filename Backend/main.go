@@ -14,7 +14,7 @@ func main() {
 	r := gin.Default()
     r.Use(cors.New(cors.Config{
         AllowOrigins:     []string{"*"},
-        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
         AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
         ExposeHeaders:    []string{"Content-Length"},
         AllowCredentials: true,
@@ -31,5 +31,5 @@ func main() {
 
 
 
-	r.Run("192.168.37.154:8080")
+	r.Run("192.168.61.154:8080")
 }

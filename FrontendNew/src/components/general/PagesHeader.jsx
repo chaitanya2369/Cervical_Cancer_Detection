@@ -1,24 +1,28 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/auth";
 
 const PagesHeader = ({ backText = "Back", title = "Patient Details" }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const { auth, logout } = useAuth();
+  console.log(auth);
+
   const handleBackClick = () => {
     navigate(-1);
   };
 
   const handleLogout = () => {
-    -1;
     console.log("Logout clicked");
+    logout();
     navigate("/login");
   };
 
   const handleViewProfile = () => {
     console.log("View Profile clicked");
-    navigate("/user/profile");
+    navigate("/super-admin/profile");
   };
 
   useEffect(() => {
@@ -76,7 +80,7 @@ const PagesHeader = ({ backText = "Back", title = "Patient Details" }) => {
             />
             <div className="flex  items-center space-x-1">
               <span className="text-sm font-medium text-gray-700">
-                Alfredo Westervelt
+                {auth.user ? auth.user.Name : ""}
               </span>
               <svg
                 className="w-4 h-4 text-gray-600"

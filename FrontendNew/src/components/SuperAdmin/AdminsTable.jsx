@@ -2,8 +2,9 @@ import { Button } from "@material-tailwind/react";
 import axios from "axios";
 import { Pencil, Trash2 } from "lucide-react";
 import React from "react";
+import AddOrEditAdminModal from "./AddOrEditAdminModal";
 
-const AdminsTable = ({ tableData, setTableData }) => {
+const AdminsTable = ({ tableData, setTableData, filter }) => {
   const VITE_API_URL = import.meta.env.VITE_API_URL;
 
   const deleteAdmin = async (adminId) => {
@@ -19,8 +20,6 @@ const AdminsTable = ({ tableData, setTableData }) => {
       console.log("Error while deleting the admin");
     }
   };
-
-  const editAdmin = () => {};
 
   const updateStatus = async (admin, value) => {
     setTableData((prevData) =>
@@ -88,12 +87,17 @@ const AdminsTable = ({ tableData, setTableData }) => {
                 </select>
               </td>
               <td className="flex px-6 py-3">
-                <Pencil
-                  size={18}
-                  strokeWidth={1.5}
-                  className="hover:cursor-pointer"
-                  onClick={() => editAdmin(row.ID)}
-                />
+                <AddOrEditAdminModal
+                  setTableData={setTableData}
+                  initialData={row}
+                  filter={filter}
+                >
+                  <Pencil
+                    size={18}
+                    strokeWidth={1.5}
+                    className="hover:cursor-pointer"
+                  />
+                </AddOrEditAdminModal>
                 <div className="w-px bg-gray-400 mx-1"></div>
                 <Trash2
                   size={18}

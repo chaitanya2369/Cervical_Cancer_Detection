@@ -1,56 +1,66 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const navigate = useNavigate();
   const [auth, setAuth] = useState({
     user: null,
     role: null,
     token: "",
   });
+  const [loading, setLoading] = useState(true);
 
   axios.defaults.headers.common["Authorization"] = auth?.token; //store jwt token in Authorization by default
 
   useEffect(() => {
     const data = Cookies.get("auth");
-    console.log("data: ",data);
+    console.log("data: ", data);
     if (data) {
       const parsedData = JSON.parse(data);
-      console.log("parsedData",parsedData);
+      console.log("parsedData", parsedData);
       setAuth({
         role: parsedData.role,
         token: parsedData.token,
-        user:parsedData.user,
+        user: parsedData.user,
       });
+    } else {
+      navigate("/login", { replace: true });
     }
-    // else{
-    //   navigate('/login',{replace:true});
-    // }
-  }, []);
+    setLoading(false);
+  }, [navigate]);
 
-  const login = (jwtToken, userRole,userData) => {
+  const updateCookies = (authData) => {
+    Cookies.set("auth", JSON.stringify(authData), { expires: 1 });
+  };
+
+  const login = (jwtToken, userRole, userData) => {
     const authData = {
       role: userRole,
       token: jwtToken,
       user: userData,
     };
     setAuth(authData);
-    Cookies.set("auth", JSON.stringify(authData), { expires: 1 }); //cookie expires in 1 day
+    updateCookies(authData);
   };
 
   const logout = () => {
+    console.log("Logout function called");
     setAuth({
       role: null,
       token: "",
-      user:null,
+      user: null,
     });
-    Cookies.remove("jwtToken"); // Remove token from cookies
+    Cookies.remove("auth"); // Remove auth cookie
   };
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout }}>
+    <AuthContext.Provider
+      value={{ auth, setAuth, login, logout, loading, updateCookies }}
+    >
       {children}
     </AuthContext.Provider>
   );

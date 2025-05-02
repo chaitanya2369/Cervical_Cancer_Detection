@@ -15,6 +15,7 @@ func RegisterAdminRoutes(router *gin.Engine) {
 	 adminGroup.DELETE("/remove-user/:id", handlers.RemoveUser)
 	 
 	 adminGroup.GET("/fields/:hospital", handlers.GetFields)
-	 adminGroup.PUT("/edit-field/:hospital", handlers.EditField)	
+	 adminGroup.PUT("/edit-fields/:hospital", handlers.EditField)	
+	 adminGroup.PUT("/edit-details", handlers.EditAdminDetails)
    }
 }

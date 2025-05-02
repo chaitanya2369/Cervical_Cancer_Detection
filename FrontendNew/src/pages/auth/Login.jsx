@@ -56,7 +56,7 @@ export default function Login() {
     }
 
     try {
-      const response = await fetch(`${apiUrl}auth/login`, {
+      const response = await fetch(`${apiUrl}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,9 +70,11 @@ export default function Login() {
       const data = await response.json();
 
       if (data.success) {
-        login(data.jwtToken, data.role,data.user); //store in auth context
+        login(data.jwtToken, data.role, data.user); //store in auth context
         // Redirect based on role
-        if (data.role == "admin") {
+        if (data.role == "super-admin") {
+          navigate("/superadmin/dashboard");
+        } else if (data.role == "admin") {
           navigate("/admin/dashboard");
         } else if (data.user) {
           navigate("/user/dashboard");

@@ -32,6 +32,9 @@ func GetSelectedFilterUsers(c *gin.Context){
 		size = 10
 	}
 
+	
+	log.Print(hospital)
+
 	filter:=bson.M{}
 	filter["status"]=status
 	filter["hospital"] = hospital
@@ -73,7 +76,7 @@ func ChangeUserData(c *gin.Context){ //send complete user
   
   var user models.USER
    if err:=c.ShouldBindJSON(&user); err!=nil{
-	 log.Fatal(err)
+	 c.JSON(http.StatusBadRequest, gin.H{"success":false,"error": err.Error()})
 	 return
    }
    
@@ -83,11 +86,11 @@ func ChangeUserData(c *gin.Context){ //send complete user
    _,err := userCollection.ReplaceOne(context.TODO(), filter, user)
 
   if err!=nil{
-	log.Fatal(err)
+	c.JSON(http.StatusInternalServerError, gin.H{"success":false,"error": err.Error()})
 	return
   }
 
-  c.JSON(http.StatusAccepted, gin.H{"success":true, "message": "User Data changed"})
+  c.JSON(http.StatusAccepted, gin.H{"success":true, "user": user})
 }
 
 func CreateUser(c *gin.Context) {
@@ -96,7 +99,7 @@ func CreateUser(c *gin.Context) {
 	// Bind the JSON request body to the user struct
 	if err := c.ShouldBindJSON(&user); err != nil {
 		log.Fatal(err)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request", "error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"success":false,"error": err.Error()})
 		return
 	}
 
@@ -106,7 +109,7 @@ func CreateUser(c *gin.Context) {
 	err := userCollection.FindOne(context.TODO(), bson.M{"email": user.Email, "hospital": user.Hospital}).Decode(&existingUser)
 	if err != mongo.ErrNoDocuments { // ErrNoDocuments means no user was found
 		log.Fatal("User already exists with the same email")
-		c.JSON(http.StatusConflict, gin.H{"message": "User already exists"})
+		c.JSON(http.StatusConflict, gin.H{"message": "User already exists", "success":false})
 		return
 	}
 
@@ -116,19 +119,19 @@ func CreateUser(c *gin.Context) {
 
 	if err != nil {
 		log.Fatal("Error hashing password: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error creating user", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Error creating user", "error": err.Error()})
 		return
 	}
 
 	_, err = userCollection.InsertOne(context.TODO(), user)
 	if err != nil {
 		log.Fatal("Error inserting user: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error creating user", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success":false, "error": err.Error()})
 		return
 	}
 
 	// Respond with success
-	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
+	c.JSON(http.StatusCreated, gin.H{"success":true,"user": user})
 }
 
 func RemoveUser(c *gin.Context) {
@@ -163,8 +166,10 @@ func GetFields(c *gin.Context) {
 
 func EditField(c *gin.Context) {
 	hospital := c.Param("hospital")	
+	log.Println(hospital)
 	fieldsCollection := db.Client.Database("db1").Collection("fields")
 	var fields models.PatientFields
+	fields.Hospital=hospital
 
 	if err := c.ShouldBindJSON(&fields); err != nil {
 		log.Fatal(err)
@@ -173,7 +178,7 @@ func EditField(c *gin.Context) {
 	}	
 
 	// Update the field with the specified ID
-	_, err := fieldsCollection.UpdateOne(context.TODO(), bson.M{"hospital": hospital}, bson.M{"$set": fields})
+	_, err := fieldsCollection.ReplaceOne(context.TODO(), bson.M{"hospital": hospital}, fields)	
 	if err != nil {	
 		log.Fatal("Error updating field: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false,"message": "Error updating field", "error": err.Error()})
@@ -182,3 +187,24 @@ func EditField(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Field updated successfully", "fields": fields})
 }	
+
+func EditAdminDetails(c *gin.Context) {
+	var editedAdmin models.ADMIN
+	if err := c.ShouldBindJSON(&editedAdmin); err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	detailsCollection := db.Client.Database("db1").Collection("admins")
+	filter := bson.M{"_id": editedAdmin.ID}
+	update := bson.M{"$set": editedAdmin}
+	_, err := detailsCollection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Details updated successfully", "admin": editedAdmin})
+}

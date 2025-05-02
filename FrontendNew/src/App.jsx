@@ -15,6 +15,38 @@ import Otp from "./pages/auth/Otp";
 import { AuthProvider } from "./context/auth";
 
 const App = () => {
+  // const router = createBrowserRouter([
+  //   path: "/",
+
+  //   {
+  //     path: "/",
+  //     element: <Home />,
+  //   },
+  //   {
+  //     path: "/login",
+  //     element: <Login />,
+  //   },
+  //   {
+  //     path: "/signup",
+  //     element: <Signup />,
+  //   },
+  //   {
+  //     path: "/otp",
+  //     element: <Otp />,
+  //   },
+  //   {
+  //     path: "/superadmin/*",
+  //     element: <SuperAdminMain />,
+  //   },
+  //   {
+  //     path: "/admin/*",
+  //     element: <AdminMain />,
+  //   },
+  //   {
+  //     path: "/user/*",
+  //     element: <UserMain />,
+  //   },
+  // ]);
   const router = createBrowserRouter([
     {
       path: "/",
@@ -22,7 +54,11 @@ const App = () => {
     },
     {
       path: "/login",
-      element: <Login />,
+      element: (
+        <AuthProvider>
+          <Login />
+        </AuthProvider>
+      ),
     },
     {
       path: "/signup",
@@ -34,22 +70,30 @@ const App = () => {
     },
     {
       path: "/superadmin/*",
-      element: <SuperAdminMain />,
+      element: (
+        <AuthProvider>
+          <SuperAdminMain />
+        </AuthProvider>
+      ),
     },
     {
       path: "/admin/*",
-      element: <AdminMain />,
+      element: (
+        <AuthProvider>
+          <AdminMain />
+        </AuthProvider>
+      ),
     },
     {
       path: "/user/*",
-      element: <UserMain />,
+      element: (
+        <AuthProvider>
+          <UserMain />
+        </AuthProvider>
+      ),
     },
   ]);
-  return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  );
+  return <RouterProvider router={router} />;
 };
 
 export default App;

@@ -13,5 +13,7 @@ func RegisterSuperAdminRoutes(router *gin.Engine) {
 	 SuperAdminGroup.POST("/add-admin",handlers.CreateAdmin) 
 	 SuperAdminGroup.PUT("/edit-admin/:id",  handlers.ChangeAdminData)
 	 SuperAdminGroup.DELETE("/remove-admin/:id", handlers.RemoveAdmin)
+
+	 SuperAdminGroup.PUT("/edit-details", handlers.EditDetails)
    }
 }
