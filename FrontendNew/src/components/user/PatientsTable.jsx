@@ -43,11 +43,11 @@ const PatientsTable = ({ tableData, setSelectedPatient }) => {
               <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                 {row.IsActive?"Active":"In Active"}
               </td>
-              <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-teal-600 hover:underline">
-                <button onClick={(e) => { e.stopPropagation(); alert(`Editing patient ${row.Name}`); }}>
-                  Edit Details
-                </button>
-              </td>
+                {/* <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-teal-600 hover:underline">
+                  <button onClick={(e) => { e.stopPropagation(); alert(`Editing patient ${row.Name}`); }}>
+                    Edit Details
+                  </button>
+                </td> */}
             </tr>
           ))}
         </tbody>

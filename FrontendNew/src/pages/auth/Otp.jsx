@@ -1,15 +1,137 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import Button from "../../components/general/Button";
+import {
+  Box,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  AppBar,
+  Toolbar,
+  Switch,
+} from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { teal } from "@mui/material/colors";
+
+const apiUrl = import.meta.env.VITE_API_URL;
+
+const lightTheme = createTheme({
+  palette: {
+    mode: "light",
+    primary: { main: teal[300] },
+    background: { default: "#f5f7fa" },
+    text: { primary: "#263238", secondary: "#607d8b" },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: "12px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: "8px",
+          textTransform: "none",
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "8px",
+            backgroundColor: "#fff",
+            width: "48px",
+            height: "48px",
+            textAlign: "center",
+            fontSize: "1.25rem",
+          },
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: "#fff",
+          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.05)",
+        },
+      },
+    },
+  },
+}); 
+
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: { main: "#4dd0e1" },
+    background: { default: "#1e2a38" },
+    text: { primary: "#eceff1", secondary: "#b0bec5" },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: "12px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+          backgroundColor: "#263544",
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: "8px",
+          textTransform: "none",
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "8px",
+            backgroundColor: "#2e3b4e",
+            width: "48px",
+            height: "48px",
+            textAlign: "center",
+            fontSize: "1.25rem",
+          },
+          "& .MuiInputLabel-root": {
+            color: "#b0bec5",
+          },
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#4b5e77",
+          },
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: "#263544",
+          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
+        },
+      },
+    },
+  },
+});
 
 export default function Otp() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [resendDisabled, setResendDisabled] = useState(true);
   const [timeLeft, setTimeLeft] = useState(30);
+  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state || "";
+
   useEffect(() => {
     if (timeLeft > 0 && resendDisabled) {
       const timer = setInterval(() => {
@@ -35,7 +157,6 @@ export default function Otp() {
     }
     setError("");
   };
-  const apiUrl = import.meta.env.VITE_API_URL;
 
   const handleResendOtp = async () => {
     if (!resendDisabled) {
@@ -96,84 +217,151 @@ export default function Otp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-sky-300 to-sky-400 relative">
-      <div className="absolute inset-0 bg-white opacity-10 mix-blend-overlay pointer-events-none"></div>
-
-      <header className="w-full bg-slate-700 bg-opacity-90 text-white py-4 shadow-md z-10 relative">
-        <div className="container mx-auto flex items-center justify-between px-6">
-          <Link to="/">
-            <h1 className="text-white font-bold text-3xl">
-              Cervi<span className="text-teal-400">Scan</span>
-            </h1>
-          </Link>
-          <nav>
-            <Link to="/login" className="text-white hover:underline ml-4">
-              Back to Login
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <div className="flex items-center justify-center py-10 relative z-10">
-        <div className="bg-white/30 backdrop-blur-lg rounded-3xl shadow-2xl p-8 w-full max-w-md text-center border border-white/20">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-white flex items-center justify-center shadow-md">
-            <svg
-              className="w-6 h-6 text-gray-700"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* Top Navbar */}
+        <AppBar position="static">
+          <Toolbar sx={{ justifyContent: "space-between" }}>
+            <Typography
+              variant="h5"
+              component={Link}
+              to="/"
+              sx={{
+                fontWeight: "bold",
+                color: darkMode ? "text.primary" : "primary.main",
+                textDecoration: "none",
+              }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 11c1.38 0 2.5-1.12 2.5-2.5S13.38 6 12 6s-2.5 1.12-2.5 2.5S10.62 11 12 11zm0 2c-2.48 0-4.5 2.02-4.5 4.5v1h9v-1c0-2.48-2.02-4.5-4.5-4.5z"
+              Cervi<span style={{ color: darkMode ? "#eceff1" : "#263238" }}>Scan</span>
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Switch
+                checked={darkMode}
+                onChange={() => setDarkMode((prev) => !prev)}
+                color="primary"
               />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-800">
-            Verify Your Email
-          </h2>
-          <p className="text-sm text-gray-600 mt-1 mb-6">
-            Enter the 6-digit code sent to {email || "your email"}.
-          </p>
-          <form onSubmit={handleSubmit} className="space-y-6 text-center">
-            <div className="flex justify-center gap-2">
-              {otp.map((digit, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  id={`otp-${index}`}
-                  value={digit}
-                  onChange={(e) => handleOtpChange(e, index)}
-                  maxLength="1"
-                  className="w-12 h-12 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-xl"
-                  autoFocus={index === 0}
-                />
-              ))}
-            </div>
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-            <Button
-              type="submit"
-              className="w-full bg-black text-white hover:bg-gray-900"
-            >
-              Verify OTP
-            </Button>
-            <p className="text-sm text-gray-600 mt-4">
-              Didn’t receive the code?{" "}
-              <button
-                onClick={handleResendOtp}
-                disabled={resendDisabled}
-                className={`text-blue-500 hover:underline ${
-                  resendDisabled ? "cursor-not-allowed opacity-50" : ""
-                }`}
+              <Button
+                component={Link}
+                to="/login"
+                variant="outlined"
+                sx={{
+                  borderColor: darkMode ? "text.primary" : "primary.main",
+                  color: darkMode ? "text.primary" : "primary.main",
+                  "&:hover": {
+                    borderColor: darkMode ? "#80deea" : "#00acc1",
+                    bgcolor: darkMode ? "rgba(77, 208, 225, 0.1)" : "rgba(38, 198, 218, 0.1)",
+                  },
+                }}
               >
-                Resend OTP {resendDisabled && `(${timeLeft}s)`}
-              </button>
-            </p>
-          </form>
-        </div>
-      </div>
-    </div>
+                Back to login
+              </Button>
+            </Box>
+          </Toolbar>
+        </AppBar>
+
+        {/* Main Content */}
+        <Box
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            p: 3,
+          }}
+        >
+          <Paper
+            sx={{
+              p: { xs: 3, sm: 4 },
+              width: { xs: "100%", sm: "400px" },
+              textAlign: "center",
+            }}
+          >
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: "bold",
+                color: "text.primary",
+                mb: 1,
+              }}
+            >
+              Verify Your Email
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                mb: 3,
+              }}
+            >
+              Enter the 6-digit code sent to {email || "your email"}.
+            </Typography>
+
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+              sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+            >
+              <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+                {otp.map((digit, index) => (
+                  <TextField
+                    key={index}
+                    id={`otp-${index}`}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(e, index)}
+                    inputProps={{ maxLength: 1 }}
+                    autoFocus={index === 0}
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+
+              {error && (
+                <Typography color="error" variant="body2">
+                  {error}
+                </Typography>
+              )}
+
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                sx={{
+                  py: 1.2,
+                  bgcolor: "primary.main",
+                  "&:hover": { bgcolor: darkMode ? "#80deea" : "#00acc1" },
+                }}
+              >
+                Verify OTP
+              </Button>
+
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                Didn’t receive the code?{" "}
+                <Button
+                  onClick={handleResendOtp}
+                  disabled={resendDisabled}
+                  sx={{
+                    fontSize: "0.875rem",
+                    color: "primary.main",
+                    textTransform: "none",
+                    p: 0,
+                    "&:hover": { textDecoration: "underline", bgcolor: "transparent" },
+                    "&.Mui-disabled": { color: "text.secondary", opacity: 0.5 },
+                  }}
+                >
+                  Resend OTP {resendDisabled && `(${timeLeft}s)`}
+                </Button>
+              </Typography>
+            </Box>
+          </Paper>
+        </Box>
+      </Box>
+    </ThemeProvider>
   );
 }

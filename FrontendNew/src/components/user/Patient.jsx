@@ -21,6 +21,8 @@ const ANALYSIS_TYPES = {
   AF: "af"
 };
 
+import { useAuth } from "../../context/auth";
+
 const Patient = ({ id }) => {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [currentModel, setCurrentModel] = useState(MODELS.SVM);
@@ -42,12 +44,13 @@ const Patient = ({ id }) => {
   const [isPredicting, setIsPredicting] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState(null);
-
+  
   const location = useLocation();
+  const {auth,loading} = useAuth();
   console.log("id:", id);
-
+  
   const apiUrl = import.meta.env.VITE_API_URL;
-
+  
   // Clean up object URLs to prevent memory leaks
   useEffect(() => {
     return () => {
@@ -55,6 +58,11 @@ const Patient = ({ id }) => {
     };
   }, [uploadedFile]);
 
+  if (loading){
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }; // Wait for loading to finish
+  const canPredict = auth.user.CanPredict; // Check if user can predictf
+  
   const parseFile = (file) => {
     if (file.name.endsWith(".csv")) {
       Papa.parse(file, {
@@ -116,7 +124,11 @@ const Patient = ({ id }) => {
   };
 
   const handlePredict = async () => {
-    if (!id) {
+    if(!canPredict){
+      alert("You do not have permission to predict. Please contact the admin.");
+      return;
+    }
+    else if (!id) {
       alert("Patient ID is missing. Please ensure a valid patient is selected.");
       return;
     }
@@ -367,7 +379,7 @@ const Patient = ({ id }) => {
                 </div>
                 <button
                   onClick={handlePredict}
-                  disabled={isPredicting}
+                  disabled={isPredicting && !canPredict}
                   className={`mt-4 w-full py-2 rounded-lg transition-colors ${
                     isPredicting
                       ? "bg-gray-400 cursor-not-allowed"

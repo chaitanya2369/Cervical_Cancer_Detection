@@ -23,8 +23,9 @@ export function SideBarItem({ icon, text, active, onClick }) {
         transition-colors
         ${
           active
-            ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
-            : "hover:bg-indigo-50 text-gray-600"
+            ? "bg-gradient-to-tr from-teal-300 to-teal-200 text-gray-800"
+            // ? "bg-teal-300 text-gray-800"
+            : "hover:bg-teal-100 text-gray-600"
         }
     `}
       onClick={onClick}

@@ -13,6 +13,7 @@ import AdminMain from "./pages/admin/AdminMain";
 import UserMain from "./pages/user/UserMain";
 import Otp from "./pages/auth/Otp";
 import { AuthProvider } from "./context/auth";
+import TrainerMain from "./pages/modelTrainer/TrianerMain";
 
 const App = () => {
   // const router = createBrowserRouter([
@@ -89,6 +90,14 @@ const App = () => {
       element: (
         <AuthProvider>
           <UserMain />
+        </AuthProvider>
+      ),
+    },
+    {
+      path: "/trainer/*",
+      element: (
+        <AuthProvider>
+          <TrainerMain />
         </AuthProvider>
       ),
     },
