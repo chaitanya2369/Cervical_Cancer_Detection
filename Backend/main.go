@@ -28,8 +28,10 @@ func main() {
 	routes.RegisterSuperAdminRoutes(r) //super admin routes
 	routes.RegisterAdminRoutes(r) //admin routes
 	routes.RegisterUserRoutes(r) //user routes
+	routes.RegisterTrainerRoutes(r)
 
 
 
-	r.Run("192.168.61.154:8080")
+	r.Run("192.168.82.154:8080")
+	// r.Run("10.2.96.197:8080")
 }

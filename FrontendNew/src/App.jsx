@@ -13,6 +13,8 @@ import AdminMain from "./pages/admin/AdminMain";
 import UserMain from "./pages/user/UserMain";
 import Otp from "./pages/auth/Otp";
 import { AuthProvider } from "./context/auth";
+import PendingPage from "./components/general/PendingPage";
+import Unauthorized from "./components/general/Unauthorized";
 
 const App = () => {
   // const router = createBrowserRouter([
@@ -91,6 +93,18 @@ const App = () => {
           <UserMain />
         </AuthProvider>
       ),
+    },
+    {
+      path: "/unauthorized",
+      element: (
+        <AuthProvider>
+          <Unauthorized />
+        </AuthProvider>
+      ),
+    },
+    {
+      path: "/pending",
+      element: <PendingPage />,
     },
   ]);
   return <RouterProvider router={router} />;

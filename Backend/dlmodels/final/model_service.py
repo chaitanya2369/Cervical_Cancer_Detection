@@ -13,16 +13,16 @@ CORS(app)
 features_order = ['Cell Area', 'Cell Aspect Ratio', 'Cell Diameter', 'Nucleus Area', 'Nucleus Aspect Ratio', 'Nucleus Diameter','Cytoplasm Area', 'NC Ratio', 'Cell Perimeter', 'Nuclear Perimeter','Cytoplasm Perimeter', 'MeanGray', 'Median', 'Variance','StandardDeviation', 'Contrast', 'Energy', 'Entropy', 'Homogenity','Correlation', 'AutoCorrelation', 'ClusterProminence', 'ClusterShade','Dissimilarity','SumSquaresVariance', 'MinGray', 'MaxGray']
 features_order_af = ['Cell Area', 'Cell Aspect Ratio', 'Cell Diameter', 'Nucleus Area', 'Nucleus Aspect Ratio', 'Nucleus Diameter','Cytoplasm Area', 'NC Ratio', 'Cell Perimeter', 'Nuclear Perimeter','Cytoplasm Perimeter', 'MeanGray', 'Median', 'Variance','StandardDeviation', 'Contrast', 'Energy', 'Entropy', 'Homogenity','Correlation', 'AutoCorrelation', 'ClusterProminence', 'ClusterShade','Dissimilarity']
 
-with open("./final_model_DIC_svm.pkl", "rb") as model_file:
+with open("./final_model_dic_svm.pkl", "rb") as model_file:
     model_dic_svm = pickle.load(model_file)
 
-with open("./final_model_DIC_logistic.pkl", "rb") as model_file:
+with open("./final_model_dic_lg.pkl", "rb") as model_file:
     model_dic_log = pickle.load(model_file)
 
-with open("./final_model_AF_svm.pkl", "rb") as model_file:
+with open("./final_model_af_svm.pkl", "rb") as model_file:
     model_af_svm = pickle.load(model_file)
 
-with open("./final_model_AF_logistic.pkl", "rb") as model_file:
+with open("./final_model_af_lg.pkl", "rb") as model_file:
     model_af_log = pickle.load(model_file)
 
 with open("./selected_features_AF.pkl", "rb") as model_file:
@@ -81,6 +81,35 @@ def predict():
             print(f"{model_type} & {image_type} : {prediction} && probability: {probability}")
 
     return jsonify({"prediction": prediction.tolist(),"probaility":probability.tolist()})
+
+
+@app.route('/replace-pickle', methods=['POST'])
+def replace_pickle():
+    model_type = request.args.get("model")
+    image_type = request.args.get("type")
+    file = request.files['pickleFile']
+
+    # Step 2: Validate file extension
+    if not file.filename.endswith('.pkl'):
+        return {"success": False, "error": "Invalid file type. Only .pkl files are allowed"}, 400
+
+    replace_file_name = ""
+    if model_type == "svm":
+        if image_type == "dic":
+            replace_file_name = "final_model_dic_svm.pkl"
+        else:
+            replace_file_name = "final_model_af_svm.pkl"
+    else:
+        if image_type == "dic":
+            replace_file_name = "final_model_dic_af.pkl"
+        else:
+            replace_file_name = "final_model_af_svm.pkl"
+    try:
+        # Save the new file, overwriting the existing one
+        file.save(replace_file_name)
+        return {"success": True, "message": "Pickle file replaced successfully"}, 200
+    except Exception as e:
+        return {"success": False, "error": f"Failed to replace pickle file: {str(e)}"}, 500
 
 
 if __name__ == '__main__':

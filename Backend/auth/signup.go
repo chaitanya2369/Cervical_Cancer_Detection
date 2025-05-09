@@ -29,8 +29,8 @@ func init() {
 	smtpPasscode = os.Getenv("SMTP_PASSCODE")
 }
 
-func generateOtp() string {
-	return strconv.Itoa(rand.Intn(1000000))
+func generateOtp() string { //generates random number of 6 digits
+	return strconv.Itoa(rand.Intn(900000) + 100000)
 }
 
 func sendOtp(otp string, email string) error {

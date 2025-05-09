@@ -2,36 +2,56 @@ import React, { useEffect, useState } from "react";
 import SideNavBar, { SideBarItem } from "../../components/general/SideNavBar";
 import UserDashboard from "../../components/user/UserDashboard";
 import ViewPatients from "../../components/user/ViewPatients";
-import {
-  LayoutDashboard,
-  UserCircle,
-  Settings,
-  User,
-  Upload,
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import ViewAdmins from "../../components/SuperAdmin/ViewAdmins";
+import { LayoutDashboard, UserCircle, User, Upload } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "../../components/user/Header";
 import Profile from "../../components/user/ProfilePage";
 import TrainingData from "../../components/user/TrainingData";
-
 import { useAuth } from "../../context/auth";
 
-
-
 const UserMain = () => {
+  const { auth, loading } = useAuth();
   const [activeItemId, setActiveItemId] = useState("dashboard");
   const navigate = useNavigate();
-  
-  const handleItemClick = (itemId) => {
-    setActiveItemId(itemId);
-  };
+  const location = useLocation();
 
+  // Handle URL-based active item selection
+  useEffect(() => {
+    const pathParts = location.pathname.split("/");
+    const urlItemId = pathParts[pathParts.length - 1];
 
+    // Handle the case where the URL is exactly "/user"
+    if (location.pathname === "/user" || urlItemId === "user") {
+      setActiveItemId("dashboard");
+      navigate("/user/dashboard", { replace: true });
+      return;
+    }
 
+    const validItemIds = items.map((item) => item.id);
+    if (validItemIds.includes(urlItemId) && urlItemId !== activeItemId) {
+      setActiveItemId(urlItemId);
+    } else if (!validItemIds.includes(urlItemId)) {
+      setActiveItemId("dashboard");
+      navigate("/user/dashboard", { replace: true });
+    }
+  }, [location.pathname, activeItemId, navigate]);
+
+  // Navigate when activeItemId changes
   useEffect(() => {
     navigate("/user/" + activeItemId);
   }, [activeItemId, navigate]);
+
+  // Handle role-based navigation after hooks
+  useEffect(() => {
+    if (!loading && auth?.role !== "user") {
+      if (auth?.role) navigate("/unauthorized", { replace: true });
+      else navigate("/login", { replace: true });
+    }
+  }, [loading, auth, navigate]);
+
+  const handleItemClick = (itemId) => {
+    setActiveItemId(itemId);
+  };
 
   const items = [
     { id: "dashboard", text: "Dashboard", icon: <LayoutDashboard size={20} /> },
@@ -77,8 +97,15 @@ const UserMain = () => {
 
   const { backText, title } = getHeaderProps();
 
+  // Render loading state or nothing until checks are complete
+  if (loading) {
+    return <h1>Loading...</h1>;
+  }
 
-
+  // If not a user, return null (navigation handled by useEffect)
+  if (auth?.role !== "user") {
+    return null;
+  }
 
   return (
     <div className="flex">
@@ -90,11 +117,17 @@ const UserMain = () => {
             text={item.text}
             active={activeItemId === item.id}
             onClick={() => handleItemClick(item.id)}
+            aria-current={activeItemId === item.id ? "page" : undefined}
+            aria-label={`Navigate to ${item.text}`}
           />
         ))}
       </SideNavBar>
       <main className="flex-1 h-screen overflow-auto">
-        <Header backText={backText} title={title} />
+        <Header
+          backText={backText}
+          title={title}
+          aria-label={`Page header for ${title}`}
+        />
         {renderContent()}
       </main>
     </div>

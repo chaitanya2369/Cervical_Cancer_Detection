@@ -17,24 +17,6 @@ export default function Login() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const token = Cookies.get("jwt-token");
-  //   if (token) {
-  //     const user = JSON.parse(localStorage.getItem("user") || "{}");
-  //     if (user && user.ID) {
-  //       // Determine dashboard based on user permissions
-  //       if (user.user) {
-  //         navigate("/admin-dashboard");
-  //       } else if (user.admin) {
-  //         navigate("/doctor-dashboard");
-  //       }
-  //     } else {
-  //       Cookies.remove("jwt-token");
-  //       localStorage.removeItem("user");
-  //     }
-  //   }
-  // }, [navigate]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -70,14 +52,21 @@ export default function Login() {
       const data = await response.json();
 
       if (data.success) {
-        login(data.jwtToken, data.role, data.user); //store in auth context
-        // Redirect based on role
-        if (data.role == "super-admin") {
-          navigate("/superadmin/dashboard");
-        } else if (data.role == "admin") {
-          navigate("/admin/dashboard");
-        } else if (data.user) {
-          navigate("/user/dashboard");
+        if (
+          data.role != "super-admin" &&
+          (data.user.Status == "pending" || data.user.Status == "unapproved")
+        ) {
+          navigate("/pending");
+        } else {
+          login(data.jwtToken, data.role, data.user); //store in auth context
+          // Redirect based on role
+          if (data.role == "super-admin") {
+            navigate("/superadmin/dashboard");
+          } else if (data.role == "admin") {
+            navigate("/admin/dashboard");
+          } else if (data.user) {
+            navigate("/user/dashboard");
+          }
         }
       } else {
         setError(data.message || "Login failed. Please try again.");

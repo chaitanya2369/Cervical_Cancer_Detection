@@ -7,18 +7,18 @@ import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import PatientDetails from "./PatientDetails";
 
-import {Trash2} from 'lucide-react'
+import { Trash2 } from "lucide-react";
 
 // Define model constants for consistency
 const MODELS = {
   SVM: "svm",
-  LOGISTIC_REGRESSION: "logisticRegression"
+  LOGISTIC_REGRESSION: "logisticRegression",
 };
 
 // Define analysis types
 const ANALYSIS_TYPES = {
   DIC: "dic",
-  AF: "af"
+  AF: "af",
 };
 
 const Patient = ({ id }) => {
@@ -60,7 +60,10 @@ const Patient = ({ id }) => {
       Papa.parse(file, {
         complete: (result) => {
           setParsedData(result.data);
-          console.log("Parsed JSON Data:", JSON.stringify(result.data, null, 2));
+          console.log(
+            "Parsed JSON Data:",
+            JSON.stringify(result.data, null, 2)
+          );
         },
         header: true,
         skipEmptyLines: true,
@@ -94,7 +97,7 @@ const Patient = ({ id }) => {
       setUploadedFile({
         file,
         url: fileUrl,
-        name: file.name
+        name: file.name,
       });
       parseFile(file);
     } else {
@@ -117,7 +120,9 @@ const Patient = ({ id }) => {
 
   const handlePredict = async () => {
     if (!id) {
-      alert("Patient ID is missing. Please ensure a valid patient is selected.");
+      alert(
+        "Patient ID is missing. Please ensure a valid patient is selected."
+      );
       return;
     }
     if (!parsedData) {
@@ -213,7 +218,11 @@ const Patient = ({ id }) => {
       }
     } catch (error) {
       console.error("Error saving patient details:", error);
-      alert(`Error saving patient details: ${error.message || "Unknown error occurred"}`);
+      alert(
+        `Error saving patient details: ${
+          error.message || "Unknown error occurred"
+        }`
+      );
     }
   };
 
@@ -224,7 +233,7 @@ const Patient = ({ id }) => {
       const response = await axios.get(`${apiUrl}/user/history/${id}`);
       if (response.status === 200) {
         console.log("Patient history:", response.data);
-        setHistoryData(response.data.history.History); // Set to History array
+        setHistoryData(response.data.history?.History); // Set to History array
         setShowHistory(true);
       } else {
         throw new Error("Failed to fetch patient history");
@@ -233,7 +242,11 @@ const Patient = ({ id }) => {
       console.error("Error fetching patient history:", error);
       setHistoryError(error.message || "Unknown error occurred");
       setShowHistory(false);
-      alert(`Error fetching patient history: ${error.message || "Unknown error occurred"}`);
+      alert(
+        `Error fetching patient history: ${
+          error.message || "Unknown error occurred"
+        }`
+      );
     } finally {
       setIsHistoryLoading(false);
     }
@@ -251,7 +264,7 @@ const Patient = ({ id }) => {
   // Helper to extract prediction and probability from Prediction array
   const getPredictionData = (predictionArray) => {
     const predictionObj = {};
-    predictionArray.forEach(item => {
+    predictionArray.forEach((item) => {
       if (item.Key === "prediction") {
         predictionObj.prediction = item.Value;
       } else if (item.Key === "probaility") {
@@ -296,7 +309,9 @@ const Patient = ({ id }) => {
                   Model Selection
                 </h3>
                 <div className="mb-4">
-                  <h4 className="text-md font-medium text-gray-600 mb-2">Model</h4>
+                  <h4 className="text-md font-medium text-gray-600 mb-2">
+                    Model
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {Object.values(MODELS).map((model) => (
                       <button
@@ -313,9 +328,11 @@ const Patient = ({ id }) => {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="mb-4">
-                  <h4 className="text-md font-medium text-gray-600 mb-2">Analysis Type</h4>
+                  <h4 className="text-md font-medium text-gray-600 mb-2">
+                    Analysis Type
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {Object.values(ANALYSIS_TYPES).map((type) => (
                       <button
@@ -332,7 +349,7 @@ const Patient = ({ id }) => {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="border-2 border-dashed border-gray-300 p-4 rounded-lg text-center">
                   {uploadedFile ? (
                     <div className="flex items-center justify-center space-x-2">
@@ -386,29 +403,41 @@ const Patient = ({ id }) => {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-gray-100">
-                          <th className="p-3 text-sm font-semibold text-gray-600">Model</th>
-                          <th className="p-3 text-sm font-semibold text-gray-600">Type</th>
-                          <th className="p-3 text-sm font-semibold text-gray-600">Predictions</th>
+                          <th className="p-3 text-sm font-semibold text-gray-600">
+                            Model
+                          </th>
+                          <th className="p-3 text-sm font-semibold text-gray-600">
+                            Type
+                          </th>
+                          <th className="p-3 text-sm font-semibold text-gray-600">
+                            Predictions
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr className="border-b hover:bg-gray-50 transition-colors">
-                          <td className="p-3 text-gray-700">{getModelDisplayName(currentModel)}</td>
-                          <td className="p-3 text-gray-700">{getTypeDisplayName(currentType)}</td>
+                          <td className="p-3 text-gray-700">
+                            {getModelDisplayName(currentModel)}
+                          </td>
+                          <td className="p-3 text-gray-700">
+                            {getTypeDisplayName(currentType)}
+                          </td>
                           <td className="p-3">
                             <div className="flex flex-wrap gap-2">
                               {responseData.prediction.map((val, idx) => {
-                                const maxProb = responseData.probaility && responseData.probaility[idx]
-                                  ? Math.max(...responseData.probaility[idx])
-                                  : 0;
+                                const maxProb =
+                                  responseData.probaility &&
+                                  responseData.probaility[idx]
+                                    ? Math.max(...responseData.probaility[idx])
+                                    : 0;
                                 const percentage = (maxProb * 100).toFixed(2);
                                 return (
                                   <span
                                     key={idx}
                                     className={`px-3 py-1 text-sm rounded-full font-semibold ${
                                       val === 1
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-green-100 text-green-700'
+                                        ? "bg-red-100 text-red-700"
+                                        : "bg-green-100 text-green-700"
                                     }`}
                                   >
                                     Cell {idx}: {val} ({percentage}%)
@@ -577,69 +606,98 @@ const Patient = ({ id }) => {
                 </div>
               )}
               {isHistoryLoading && (
-                <div className="text-center text-gray-600">Loading history...</div>
-              )}
-              {!isHistoryLoading && !historyError && historyData?.length > 0 && (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="p-3 text-sm font-semibold text-gray-600">Consult Date</th>
-                        <th className="p-3 text-sm font-semibold text-gray-600">Model</th>
-                        <th className="p-3 text-sm font-semibold text-gray-600">Type</th>
-                        <th className="p-3 text-sm font-semibold text-gray-600">Predictions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {historyData.map((entry, index) => {
-                        const predictionData = getPredictionData(entry.Prediction);
-                        return (
-                          <tr
-                            key={index}
-                            className="border-b hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="p-3 text-gray-700">
-                              {new Date(entry.CreatedAt).toLocaleDateString()}{<br />}{ new Date(entry.CreatedAt).toLocaleTimeString()}  
-                            </td>
-                            <td className="p-3 text-gray-700">{entry.Model?.toUpperCase()}</td>
-                            <td className="p-3 text-gray-700">{entry.Type?.toUpperCase()}</td>
-                            <td className="p-3">
-                              <div className="flex flex-wrap gap-2">
-                                {predictionData.prediction?.map((val, idx) => {
-                                  const maxProb = predictionData.probaility && predictionData.probaility[idx]
-                                    ? Math.max(...predictionData.probaility[idx])
-                                    : 0;
-                                  const percentage = (maxProb * 100).toFixed(2);
-                                  return (
-                                    <span
-                                      key={idx}
-                                      className={`px-3 py-1 text-sm rounded-full font-semibold ${
-                                        val === 1
-                                          ? 'bg-red-100 text-red-700'
-                                          : 'bg-green-100 text-green-700'
-                                      }`}
-                                    >
-                                      Cell {idx}: {val} ({percentage}%)
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              {!isHistoryLoading && !historyError && (!historyData || historyData.length === 0) && (
                 <div className="text-center text-gray-600">
-                  No history available for this patient.
+                  Loading history...
                 </div>
               )}
+              {!isHistoryLoading &&
+                !historyError &&
+                historyData?.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="p-3 text-sm font-semibold text-gray-600">
+                            Consult Date
+                          </th>
+                          <th className="p-3 text-sm font-semibold text-gray-600">
+                            Model
+                          </th>
+                          <th className="p-3 text-sm font-semibold text-gray-600">
+                            Type
+                          </th>
+                          <th className="p-3 text-sm font-semibold text-gray-600">
+                            Predictions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {historyData.map((entry, index) => {
+                          const predictionData = getPredictionData(
+                            entry.Prediction
+                          );
+                          return (
+                            <tr
+                              key={index}
+                              className="border-b hover:bg-gray-50 transition-colors"
+                            >
+                              <td className="p-3 text-gray-700">
+                                {new Date(entry.CreatedAt).toLocaleDateString()}
+                                {<br />}
+                                {new Date(entry.CreatedAt).toLocaleTimeString()}
+                              </td>
+                              <td className="p-3 text-gray-700">
+                                {entry.Model?.toUpperCase()}
+                              </td>
+                              <td className="p-3 text-gray-700">
+                                {entry.Type?.toUpperCase()}
+                              </td>
+                              <td className="p-3">
+                                <div className="flex flex-wrap gap-2">
+                                  {predictionData.prediction?.map(
+                                    (val, idx) => {
+                                      const maxProb =
+                                        predictionData.probaility &&
+                                        predictionData.probaility[idx]
+                                          ? Math.max(
+                                              ...predictionData.probaility[idx]
+                                            )
+                                          : 0;
+                                      const percentage = (
+                                        maxProb * 100
+                                      ).toFixed(2);
+                                      return (
+                                        <span
+                                          key={idx}
+                                          className={`px-3 py-1 text-sm rounded-full font-semibold ${
+                                            val === 1
+                                              ? "bg-red-100 text-red-700"
+                                              : "bg-green-100 text-green-700"
+                                          }`}
+                                        >
+                                          Cell {idx}: {val} ({percentage}%)
+                                        </span>
+                                      );
+                                    }
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              {!isHistoryLoading &&
+                !historyError &&
+                (!historyData || historyData.length === 0) && (
+                  <div className="text-center text-gray-600">
+                    No history available for this patient.
+                  </div>
+                )}
             </div>
           )}
-
         </div>
       </div>
 
@@ -676,7 +734,9 @@ const Patient = ({ id }) => {
 
             {/* Notes Section */}
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Notes</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                Notes
+              </h3>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -786,7 +846,9 @@ const Patient = ({ id }) => {
               <button
                 onClick={() => {
                   if (!note || note.trim() === "") {
-                    alert("Please add notes before saving. Notes are required.");
+                    alert(
+                      "Please add notes before saving. Notes are required."
+                    );
                     return;
                   }
                   handleSaveDetails();

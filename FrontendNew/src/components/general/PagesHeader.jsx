@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { replace, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 
 const PagesHeader = ({ backText = "Back", title = "Patient Details" }) => {
@@ -10,14 +10,10 @@ const PagesHeader = ({ backText = "Back", title = "Patient Details" }) => {
   const { auth, logout } = useAuth();
   console.log(auth);
 
-  const handleBackClick = () => {
-    navigate(-1);
-  };
-
   const handleLogout = () => {
     console.log("Logout clicked");
     logout();
-    navigate("/login");
+    navigate("/", { replace: true });
   };
 
   const handleViewProfile = () => {

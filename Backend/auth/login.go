@@ -61,5 +61,5 @@ func HandleLogin(c *gin.Context){
       return
    }
 
-   c.JSON(http.StatusNotAcceptable, gin.H{"message": "User not Registered"})
+   c.JSON(http.StatusNotAcceptable, gin.H{"message": "User not Registered", "success": false})
 }

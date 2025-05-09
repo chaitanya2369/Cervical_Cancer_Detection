@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"time"
@@ -123,14 +124,11 @@ func getID(collection *mongo.Collection) string {
 
 func AddNewPatient(c *gin.Context) {
 	var newPatient models.PATIENT
-    log.Print(c.Request.Body)
 	if err := c.ShouldBindJSON(&newPatient); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "success": false})
 		return
 	}
 
-
-	log.Print(newPatient)
 	patientsCollection := db.Client.Database("db1").Collection("patients")
 
 	newPatient.ID = getID(patientsCollection)
@@ -372,7 +370,7 @@ func GetPatientHistory(c *gin.Context){
 			// Return null when no document is found
 			c.JSON(http.StatusOK, gin.H{"success": true, "history": nil})
 			return
-		}
+		}      
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
@@ -382,36 +380,21 @@ func GetPatientHistory(c *gin.Context){
 
 func GetFormatFile(c *gin.Context){
 	fileType:=c.Query("type")
-	filePath:="C:/Users/Sanmai/Desktop/MajProject/Cervical_Cancer_Detection/Backend/data/test_"+fileType+".xlsx"
+	filePath:="C:/Users/Sanmai/Desktop/MajProject/Cervical_Cancer_Detection/Backend/data/format_"+fileType+".xlsx"
+    file, _:=os.Open(filePath)
+	fileInfo, _:=file.Stat()
 
-	file,err:=os.Open(filePath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open template file", "success": false})
-		return
-	}
-	defer file.Close()
-
-	fileInfo, err := file.Stat()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get file info", "success": false})
-		return
-	}
-
-	c.Header("Content-Description", "File Transfer")
-	c.Header("Content-Disposition", "attachment; filename=input_template.xlsx")
+	// Set the response headers for file download
+	c.Header("Content-Disposition", "attachment; filename=dic_af_format.xlsx")
 	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	c.Header("Content-Length", strconv.FormatInt(fileInfo.Size(), 10))
-	c.Header("Content-Transfer-Encoding", "binary")
-	c.Header("Expires", "0")
+	c.Header("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
 
-	_, err = io.Copy(c.Writer, file)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send file", "success": false})
+	_,err:=io.Copy(c.Writer, file)
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false});
 		return
 	}
-
-	c.Writer.Flush()
-
+	
 	c.JSON(http.StatusOK, gin.H{"message": "File sent successfully", "success": true})
 }
 
@@ -444,7 +427,6 @@ func AddNote(c *gin.Context){
 func EditUserDetails(c *gin.Context){
     var editedUser models.USER
 	if err := c.ShouldBindJSON(&editedUser); err != nil {
-		log.Fatal(err)
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
@@ -461,6 +443,28 @@ func EditUserDetails(c *gin.Context){
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Details updated successfully", "user": editedUser})
+}
+
+func UploadDataForIncrementalTraining(c *gin.Context){
+	var trainDataEntry models.INCREMENTAL_TRAIN_DATA
+
+	if err:=c.ShouldBindJSON(&trainDataEntry); err!=nil{
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	trainDataEntry.Status = "pending"
+	trainDataEntry.CreatedAt = time.Now()
+
+	trainDataCollection:=db.Client.Database("db1").Collection("train_data")
+	_,err:=trainDataCollection.InsertOne(context.TODO(), trainDataEntry);
+
+	if err!=nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, gin.H{"success": true})
 }
 
 // func uploadImageInS3(file multipart.File, key string) {

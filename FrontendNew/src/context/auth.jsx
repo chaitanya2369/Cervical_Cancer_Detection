@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }) => {
       user: null,
     });
     Cookies.remove("auth"); // Remove auth cookie
+    navigate("/");
   };
 
   return (
