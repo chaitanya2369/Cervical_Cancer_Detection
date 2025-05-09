@@ -25,7 +25,7 @@ const ViewPatients = () => {
 
   // Form state - Initialize with all required fields
   const [newPatient, setNewPatient] = useState({
-    consultdate: new Date().toISOString().split("T")[0], // Default to today's date
+    consultdate: new Date().toISOString().split("T")[0],
     name: "",
     age: "",
     phoneNumber: "", // Added this missing field

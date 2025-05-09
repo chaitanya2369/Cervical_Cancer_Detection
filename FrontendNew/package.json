@@ -11,7 +11,11 @@
     "tailwind:init": "tailwindcss init -p"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@material-tailwind/react": "^2.1.10",
+    "@mui/icons-material": "^7.0.2",
+    "@mui/material": "^7.0.2",
     "axios": "^1.8.4",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.487.0",
@@ -19,7 +23,7 @@
     "react": "^19.0.0",
     "react-datepicker": "^8.2.1",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.5.0",
+    "react-router-dom": "^7.5.3",
     "react-use-downloader": "^1.2.10",
     "xlsx": "^0.18.5"
   },

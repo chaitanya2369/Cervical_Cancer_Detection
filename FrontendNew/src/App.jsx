@@ -15,6 +15,7 @@ import Otp from "./pages/auth/Otp";
 import { AuthProvider } from "./context/auth";
 import PendingPage from "./components/general/PendingPage";
 import Unauthorized from "./components/general/Unauthorized";
+import TrainerMain from "./pages/modelTrainer/TrianerMain";
 
 const App = () => {
   // const router = createBrowserRouter([
@@ -105,6 +106,14 @@ const App = () => {
     {
       path: "/pending",
       element: <PendingPage />,
+    },
+    {
+      path: "/trainer/*",
+      element: (
+        <AuthProvider>
+          <TrainerMain />
+        </AuthProvider>
+      ),
     },
   ]);
   return <RouterProvider router={router} />;

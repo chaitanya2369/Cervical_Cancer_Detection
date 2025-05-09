@@ -21,6 +21,8 @@ const ANALYSIS_TYPES = {
   AF: "af",
 };
 
+import { useAuth } from "../../context/auth";
+
 const Patient = ({ id }) => {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [currentModel, setCurrentModel] = useState(MODELS.SVM);
@@ -44,6 +46,7 @@ const Patient = ({ id }) => {
   const [historyError, setHistoryError] = useState(null);
 
   const location = useLocation();
+  const { auth, loading } = useAuth();
   console.log("id:", id);
 
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -54,6 +57,15 @@ const Patient = ({ id }) => {
       if (uploadedFile) URL.revokeObjectURL(uploadedFile.url);
     };
   }, [uploadedFile]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
+  } // Wait for loading to finish
+  const canPredict = auth.user.CanPredict; // Check if user can predictf
 
   const parseFile = (file) => {
     if (file.name.endsWith(".csv")) {
@@ -119,7 +131,10 @@ const Patient = ({ id }) => {
   };
 
   const handlePredict = async () => {
-    if (!id) {
+    if (!canPredict) {
+      alert("You do not have permission to predict. Please contact the admin.");
+      return;
+    } else if (!id) {
       alert(
         "Patient ID is missing. Please ensure a valid patient is selected."
       );
@@ -384,7 +399,7 @@ const Patient = ({ id }) => {
                 </div>
                 <button
                   onClick={handlePredict}
-                  disabled={isPredicting}
+                  disabled={isPredicting && !canPredict}
                   className={`mt-4 w-full py-2 rounded-lg transition-colors ${
                     isPredicting
                       ? "bg-gray-400 cursor-not-allowed"
@@ -632,59 +647,66 @@ const Patient = ({ id }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {historyData.map((entry, index) => {
-                          const predictionData = getPredictionData(
-                            entry.Prediction
-                          );
-                          return (
-                            <tr
-                              key={index}
-                              className="border-b hover:bg-gray-50 transition-colors"
-                            >
-                              <td className="p-3 text-gray-700">
-                                {new Date(entry.CreatedAt).toLocaleDateString()}
-                                {<br />}
-                                {new Date(entry.CreatedAt).toLocaleTimeString()}
-                              </td>
-                              <td className="p-3 text-gray-700">
-                                {entry.Model?.toUpperCase()}
-                              </td>
-                              <td className="p-3 text-gray-700">
-                                {entry.Type?.toUpperCase()}
-                              </td>
-                              <td className="p-3">
-                                <div className="flex flex-wrap gap-2">
-                                  {predictionData.prediction?.map(
-                                    (val, idx) => {
-                                      const maxProb =
-                                        predictionData.probaility &&
-                                        predictionData.probaility[idx]
-                                          ? Math.max(
-                                              ...predictionData.probaility[idx]
-                                            )
-                                          : 0;
-                                      const percentage = (
-                                        maxProb * 100
-                                      ).toFixed(2);
-                                      return (
-                                        <span
-                                          key={idx}
-                                          className={`px-3 py-1 text-sm rounded-full font-semibold ${
-                                            val === 1
-                                              ? "bg-red-100 text-red-700"
-                                              : "bg-green-100 text-green-700"
-                                          }`}
-                                        >
-                                          Cell {idx}: {val} ({percentage}%)
-                                        </span>
-                                      );
-                                    }
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
+                        {historyData != null &&
+                          historyData.map((entry, index) => {
+                            const predictionData = getPredictionData(
+                              entry.Prediction
+                            );
+                            return (
+                              <tr
+                                key={index}
+                                className="border-b hover:bg-gray-50 transition-colors"
+                              >
+                                <td className="p-3 text-gray-700">
+                                  {new Date(
+                                    entry.CreatedAt
+                                  ).toLocaleDateString()}
+                                  {<br />}
+                                  {new Date(
+                                    entry.CreatedAt
+                                  ).toLocaleTimeString()}
+                                </td>
+                                <td className="p-3 text-gray-700">
+                                  {entry.Model?.toUpperCase()}
+                                </td>
+                                <td className="p-3 text-gray-700">
+                                  {entry.Type?.toUpperCase()}
+                                </td>
+                                <td className="p-3">
+                                  <div className="flex flex-wrap gap-2">
+                                    {predictionData.prediction?.map(
+                                      (val, idx) => {
+                                        const maxProb =
+                                          predictionData.probaility &&
+                                          predictionData.probaility[idx]
+                                            ? Math.max(
+                                                ...predictionData.probaility[
+                                                  idx
+                                                ]
+                                              )
+                                            : 0;
+                                        const percentage = (
+                                          maxProb * 100
+                                        ).toFixed(2);
+                                        return (
+                                          <span
+                                            key={idx}
+                                            className={`px-3 py-1 text-sm rounded-full font-semibold ${
+                                              val === 1
+                                                ? "bg-red-100 text-red-700"
+                                                : "bg-green-100 text-green-700"
+                                            }`}
+                                          >
+                                            Cell {idx}: {val} ({percentage}%)
+                                          </span>
+                                        );
+                                      }
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                       </tbody>
                     </table>
                   </div>

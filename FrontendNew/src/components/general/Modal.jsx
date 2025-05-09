@@ -1,4 +1,68 @@
 import React, { useState, useEffect, useRef } from "react";
+import {
+  createTheme,
+  ThemeProvider,
+  useTheme,
+} from "@mui/material/styles";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Box,
+  Typography,
+  Button,
+  CircularProgress,
+  IconButton,
+  Zoom,
+  Paper,
+  Tooltip,
+  Switch,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import DragHandleIcon from "@mui/icons-material/DragHandle";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+
+const lightTheme = createTheme({
+  palette: {
+    mode: "light",
+    primary: { main: "#49ab9b" },
+    background: { default: "#f5f7fa", paper: "#fff" },
+    text: { primary: "#263238", secondary: "#607d8b" },
+  },
+  components: {
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: "16px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
+          border: "1px solid rgba(73, 171, 155, 0.2)",
+        },
+      },
+    },
+  },
+});
+
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: { main: "#6ec1ae" },
+    background: { default: "#1e2a38", paper: "#263544" },
+    text: { primary: "#eceff1", secondary: "#b0bec5" },
+  },
+  components: {
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: "16px",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.25)",
+          border: "1px solid rgba(110, 193, 174, 0.2)",
+        },
+      },
+    },
+  },
+});
 
 const Modal = ({
   isOpen,
@@ -6,19 +70,20 @@ const Modal = ({
   onSave,
   title,
   children,
-  width = "w-[800px]",
-  height = "max-h-[90vh]",
+  width = "800px",
+  height = "90vh",
+  saveButtonText = "Save Changes",
 }) => {
+  const [darkMode, setDarkMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const modalRef = useRef(null);
   const headerRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setPosition({ x: 0, y: 0 }); // Reset position when modal opens
+      setPosition({ x: 0, y: 0 });
     }
 
     const handleMouseMove = (e) => {
@@ -33,9 +98,7 @@ const Modal = ({
       }
     };
 
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
+    const handleMouseUp = () => setIsDragging(false);
 
     if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove);
@@ -49,143 +112,156 @@ const Modal = ({
   }, [isDragging, startPos]);
 
   const handleMouseDown = (e) => {
-    if (e.target === headerRef.current) {
+    if (headerRef.current.contains(e.target)) {
       setIsDragging(true);
       setStartPos({ x: e.clientX, y: e.clientY });
-    }
-  };
-
-  const handleOverlayClick = (e) => {
-    if (e.target === modalRef.current) {
-      onClose();
     }
   };
 
   const handleSaveWithLoading = () => {
     setIsLoading(true);
     onSave();
-    // Simulate async operation (replace with actual logic)
     setTimeout(() => setIsLoading(false), 1000);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md px-4"
-      onClick={handleOverlayClick}
-      ref={modalRef}
-    >
-      <div
-        className={`bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl ${width} ${height} flex flex-col overflow-hidden animate-fadeInScale relative`}
-        style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
-          touchAction: isDragging ? "none" : "auto",
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <Dialog
+        open={isOpen}
+        onClose={onClose}
+        TransitionComponent={Zoom}
+        TransitionProps={{ timeout: 400 }}
+        PaperProps={{
+          style: {
+            width: width,
+            maxHeight: height,
+            transform: `translate(${position.x}px, ${position.y}px)`,
+            touchAction: isDragging ? "none" : "auto",
+          },
+        }}
+        BackdropProps={{
+          style: {
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(6px)",
+          },
         }}
       >
         {/* Header */}
-        <div
-          ref={headerRef}
-          className="flex items-center justify-between px-8 py-4 order-b bg-gradient-to-r from-teal-500/10 to-blue-100/10 cursor-move"
-          onMouseDown={handleMouseDown}
-        >
-          <h2 className="text-2xl font-bold text-gray-900 drop-shadow-sm">
-            {title || "Edit Details"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-600 hover:text-red-500 transition-colors text-3xl font-bold focus:outline-none focus:ring-2 focus:ring-teal-400 rounded-full p-2 hover:bg-gray-100/50"
-            aria-label="Close"
+        <DialogTitle sx={{ padding: 0,mb: 2 }}>
+          <Box
+            ref={headerRef}
+            onMouseDown={handleMouseDown}
+            sx={{
+              background: darkMode
+                ? "linear-gradient(135deg, #6ec1ae, #4f9c8b)"
+                : "linear-gradient(135deg, #49ab9b, #3c8f81)",
+              color: "#fff",
+              px: 3,
+              py: 2.5,
+              borderTopLeftRadius: "16px",
+              borderTopRightRadius: "16px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              cursor: "move",
+              boxShadow: "0px 2px 4px rgba(0,0,0,0.1)",
+            }}
           >
-            ×
-          </button>
-        </div>
+            <Box display="flex" alignItems="center" gap={2}>
+              <DragHandleIcon sx={{ fontSize: 28 }} />
+              <Box>
+                <Typography variant="h6" fontWeight="bold">
+                  {title || "Edit Details"}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box display="flex" alignItems="center" gap={1}>
+              {/* <Tooltip title="Toggle Theme">
+                <IconButton
+                  size="small"
+                  sx={{ color: "#fff" }}
+                  onClick={() => setDarkMode(!darkMode)}
+                >
+                  {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+                </IconButton>
+              </Tooltip> */}
+              <Tooltip title="Close">
+                <IconButton
+                  onClick={onClose}
+                  sx={{
+                    color: "#fff",
+                    "&:hover": {
+                      backgroundColor: "rgba(255, 255, 255, 0.15)",
+                    },
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Box>
+        </DialogTitle>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto flex-1 bg-gray-50/80 backdrop-blur-sm space-y-6">
-          {children}
-        </div>
+        <DialogContent>
+          <Paper elevation={0}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {children}
+            </Box>
+          </Paper>
+        </DialogContent>
 
         {/* Footer */}
-        <div className="flex justify-end items-center gap-4 px-8 py-5 border-t bg-white/90">
-          <button
+        <DialogActions
+          sx={{
+            padding: "16px 24px",
+            borderTop: `1px solid ${darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}`,
+            backgroundColor: darkMode ? "#263544" : "#fff",
+            gap: "12px",
+          }}
+        >
+          <Button
             onClick={onClose}
-            className="px-6 py-3 rounded-2xl border border-gray-300 hover:bg-gray-100/50 text-gray-800 text-base font-medium transition-all shadow-sm hover:shadow-md"
+            variant="outlined"
+            sx={{
+              borderColor: darkMode ? "text.primary" : "primary.main",
+              color: darkMode ? "text.primary" : "primary.main",
+              "&:hover": {
+                borderColor: darkMode ? "#6ec1ae" : "#3e8c7e",
+                backgroundColor: darkMode
+                  ? "rgba(110, 193, 174, 0.1)"
+                  : "rgba(73, 171, 155, 0.1)",
+              },
+            }}
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleSaveWithLoading}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-base font-semibold transition-all shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+            variant="contained"
             disabled={isLoading}
+            sx={{
+              bgcolor: "primary.main",
+              "&:hover": { bgcolor: darkMode ? "#81d4bf" : "#3e8c7e" },
+              "&:disabled": { bgcolor: "grey.500", cursor: "not-allowed" },
+            }}
           >
             {isLoading ? (
-              <span className="flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2 animate-spin"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <CircularProgress size={20} sx={{ color: "#fff", mr: 1 }} />
                 Saving...
-              </span>
+              </Box>
             ) : (
-              "Save Changes"
+              saveButtonText
             )}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </ThemeProvider>
   );
 };
-
-// Animation Keyframes
-const styles = `
-  @keyframes fadeInScale {
-    from {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  .animate-fadeInScale {
-    animation: fadeInScale 0.3s ease-out forwards;
-  }
-
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .animate-spin {
-    animation: spin 1s linear infinite;
-  }
-`;
-
-const styleSheet = document.createElement("style");
-styleSheet.textContent = styles;
-document.head.appendChild(styleSheet);
 
 export default Modal;

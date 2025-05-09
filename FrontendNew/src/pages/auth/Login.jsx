@@ -1,10 +1,128 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import Button from "../../components/general/Button";
 import Cookies from "js-cookie";
 import { useAuth } from "../../context/auth";
+import {
+  Box,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  IconButton,
+  InputAdornment,
+  AppBar,
+  Toolbar,
+  Link as MuiLink,
+  Divider,
+  Switch,
+} from "@mui/material";
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { teal } from "@mui/material/colors";
 
 const apiUrl = import.meta.env.VITE_API_URL;
+
+const lightTheme = createTheme({
+  palette: {
+    mode: "light",
+    primary: { main: teal[300] },
+    background: { default: "#f5f7fa" },
+    text: { primary: "#263238", secondary: "#607d8b" },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: "12px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: "8px",
+          textTransform: "none",
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "8px",
+            backgroundColor: "#fff",
+          },
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: "#fff",
+          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.05)",
+        },
+      },
+    },
+  },
+});
+
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: { main: "#4dd0e1" },
+    background: { default: "#1e2a38" },
+    text: { primary: "#eceff1", secondary: "#b0bec5" },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: "12px",
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+          backgroundColor: "#263544",
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: "8px",
+          textTransform: "none",
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "8px",
+            backgroundColor: "#2e3b4e",
+          },
+          "& .MuiInputLabel-root": {
+            color: "#b0bec5",
+          },
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#4b5e77",
+          },
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: "#263544",
+          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
+        },
+      },
+    },
+  },
+});
 
 export default function Login() {
   const { auth, setAuth, login, logout } = useAuth();
@@ -12,21 +130,20 @@ export default function Login() {
     email: "",
     password: "",
   });
-
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(""); // Clear error on change
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (!formData.email || !formData.password) {
       setError("Email and password are required.");
       return;
@@ -78,190 +195,212 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-sky-300 to-sky-400 relative">
-      {/* Cloud Overlay */}
-      <div className="absolute inset-0 bg-white opacity-10 mix-blend-overlay pointer-events-none"></div>
-
-      {/* Header Section */}
-      <header className="w-full bg-slate-700 bg-opacity-90 text-white py-4 shadow-md z-10 relative">
-        <div className="container mx-auto flex items-center justify-between px-6">
-          <Link to="/">
-            <h1 className="text-black font-bold text-3xl">
-              Cervi<span className="text-teal-400">Scan</span>
-            </h1>
-          </Link>
-          <nav>
-            <Link to="/signup" className="text-white hover:underline ml-4">
-              Sign Up
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="flex items-center justify-center py-10 relative z-10">
-        <div className="bg-white/30 backdrop-blur-lg rounded-3xl shadow-2xl p-8 w-full max-w-md text-center border border-white/20">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-white flex items-center justify-center shadow-md">
-            <svg
-              className="w-6 h-6 text-gray-700"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* Top Navbar */}
+        <AppBar position="static">
+          <Toolbar sx={{ justifyContent: "space-between" }}>
+            <Typography
+              variant="h5"
+              component={Link}
+              to="/"
+              sx={{
+                fontWeight: "bold",
+                color: darkMode ? "text.primary" : "primary.main",
+                textDecoration: "none",
+              }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M17 16l4-4m0 0l-4-4m4 4H7"
+              Cervi
+              <span style={{ color: darkMode ? "#eceff1" : "#263238" }}>
+                Scan
+              </span>
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Switch
+                checked={darkMode}
+                onChange={() => setDarkMode((prev) => !prev)}
+                color="primary"
               />
-            </svg>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-800">
-            Sign in with email
-          </h2>
-          <p className="text-sm text-gray-600 mt-1 mb-6">
-            Start diagnosing early with intelligent imaging — fast, reliable,
-            and secure.
-          </p>
-          <form onSubmit={handleSubmit} className="space-y-4 text-left">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
+              <MuiLink
+                component={Link}
+                to="/signup"
+                sx={{
+                  fontSize: "0.875rem",
+                  color: darkMode ? "text.primary" : "primary.main",
+                  textDecoration: "none",
+                  fontWeight: "medium",
+                  border: "1px solid",
+                  borderRadius: "4px",
+                  padding: "6px 12px",
+                  backgroundColor: darkMode ? "#4b5e77" : "#f5f7fa",
+                  transition: "background-color 0.3s",
+                  "&:hover": {
+                    backgroundColor: darkMode ? "#607d8b" : "#e0f7fa",
+                    textDecoration: "none",
+                  },
+                }}
+                variant="outlined"
+                color="primary"
+                size="small"
               >
-                Email
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  required
-                  className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                </span>
-              </div>
-            </div>
+                Sign Up
+              </MuiLink>
+            </Box>
+          </Toolbar>
+        </AppBar>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  id="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-3 py-2 pl-10 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 11c1.38 0 2.5-1.12 2.5-2.5S13.38 6 12 6s-2.5 1.12-2.5 2.5S10.62 11 12 11zm0 2c-2.48 0-4.5 2.02-4.5 4.5v1h9v-1c0-2.48-2.02-4.5-4.5-4.5z"
-                    />
-                  </svg>
-                </span>
+        {/* Main Content */}
+        <Box
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            p: 3,
+          }}
+        >
+          <Paper
+            sx={{
+              p: { xs: 3, sm: 4 },
+              width: { xs: "100%", sm: "400px" },
+              textAlign: "center",
+            }}
+          >
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: "bold",
+                color: "text.primary",
+                mb: 1,
+              }}
+            >
+              Sign In
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+                mb: 3,
+              }}
+            >
+              Access your account to continue
+            </Typography>
 
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                >
-                  {showPassword ? (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10a9.963 9.963 0 011.514-5.236m16.97 16.97L3 3m4.667 4.667A7.963 7.963 0 004 9c0 4.418 3.582 8 8 8 1.533 0 2.96-.437 4.167-1.167M21 21L3 3"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              <div className="text-right mt-1">
-                <Link
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              <TextField
+                fullWidth
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                required
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon sx={{ color: "primary.main" }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <TextField
+                fullWidth
+                label="Password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                required
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ color: "primary.main" }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        edge="end"
+                        sx={{ color: "primary.main" }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <Box sx={{ textAlign: "right" }}>
+                <MuiLink
+                  component={Link}
                   to="/forgot-password"
-                  className="text-sm text-blue-500 hover:underline"
+                  sx={{
+                    fontSize: "0.875rem",
+                    color: "primary.main",
+                    textDecoration: "none",
+                    "&:hover": { textDecoration: "underline" },
+                  }}
                 >
                   Forgot password?
-                </Link>
-              </div>
-            </div>
+                </MuiLink>
+              </Box>
 
-            <Button
-              type="submit"
-              className="w-full bg-black text-white hover:bg-gray-900"
-            >
-              Get Started
-            </Button>
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-            <p className="text-sm text-gray-600 mt-4 text-center">
-              Don’t have an account?{" "}
-              <Link to="/signup" className="text-blue-500 hover:underline">
-                Sign up
-              </Link>
-            </p>
-          </form>
-        </div>
-      </div>
-    </div>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                sx={{
+                  py: 1.2,
+                  bgcolor: "primary.main",
+                  "&:hover": { bgcolor: darkMode ? "#80deea" : "#00acc1" },
+                }}
+              >
+                Sign In
+              </Button>
+
+              {error && (
+                <Typography color="error" variant="body2">
+                  {error}
+                </Typography>
+              )}
+
+              <Divider sx={{ my: 2, color: "text.secondary" }}>or</Divider>
+
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                Don’t have an account?{" "}
+                <MuiLink
+                  component={Link}
+                  to="/signup"
+                  sx={{
+                    color: "primary.main",
+                    textDecoration: "none",
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                >
+                  Sign up
+                </MuiLink>
+              </Typography>
+            </Box>
+          </Paper>
+        </Box>
+      </Box>
+    </ThemeProvider>
   );
 }
